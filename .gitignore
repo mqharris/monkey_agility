@@ -140,3 +140,4 @@ cython_debug/
 # my stuff
 agility_data
 *model*
+config.yaml
