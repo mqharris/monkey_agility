@@ -1,7 +1,7 @@
 # Monkey Agility
 Named after the saying; Monkey see, Monkey do.
 
-This is a system to run obsticale course laps in [online video game], and it consists of two components:
+This is a system to run obstacle course laps in [online video game], and it consists of two components:
 
 ## Monkey See:
 ------
