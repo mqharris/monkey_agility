@@ -59,11 +59,14 @@ out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
 plt.imshow(out.get_image())
 plt.xticks([]), plt.yticks([])  # Hides the graph ticks and x / y axis
 # plt.show()
-plt.savefig("./test")
+# plt.savefig("./test")
 plt.close()
 
 
 print("aslkdfjals")
-outputs["instances"].get_fields()["pred_boxes"].get_centers()
-outputs["instances"].get_fields()["pred_boxes"].tensor
+centers = outputs["instances"].get_fields()["pred_boxes"].get_centers()
+tensor = outputs["instances"].get_fields()["pred_boxes"].tensor
+
+print(centers)
+print(tensor)
 # myScreenshot.save("test.png")
