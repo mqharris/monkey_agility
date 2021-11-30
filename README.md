@@ -17,3 +17,7 @@ This model detects the agility course's obstacle regions and outputs x-y coordin
 This component takes the output of the machine vision model and then interacts with the in game environment. This is achieved by moving the mouse pointer and clicking the agility obstacles.
 
 The train and val data sets and the model are not currently uploaded
+
+------------
+Currently `screen_data_processing.py` will print to terminal the centers and the bounding box for each detected obstacle 
+
