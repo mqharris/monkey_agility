@@ -20,3 +20,4 @@ The train and val data sets and the model are not currently uploaded
 
 ------------
 Currently `screen_data_processing.py` will print to terminal the centers and the bounding box for each detected obstacle 
+
