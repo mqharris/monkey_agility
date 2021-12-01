@@ -14,11 +14,14 @@ x, y = data.T
 x = list(x)
 y = list(y)
 
-x = x[:50] + x[200:]
-y = y[:50] + y[200:]
+# x = x[:50] + x[200:]
+# y = y[:50] + y[200:]
 
 
-plt.scatter(x, y)
+plt.scatter(x, y, marker="x")
+# plt.axis([1400, 1650, 200, 300])
+plt.xlim(1400, 1650)
+plt.ylim(200, 300)
 
 ax = plt.gca()
 ax.invert_yaxis()
