@@ -41,7 +41,7 @@ predictor = DefaultPredictor(cfg)
 counter = 1
 directory = './agility/video_frames_2'
 output_dir = "./agility/output_for_video"
-# for timing fps
+# for timing
 start = time.time()
 for filename in sorted(os.listdir(directory)):
     f = os.path.join(directory, filename)
