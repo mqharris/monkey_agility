@@ -141,3 +141,4 @@ cython_debug/
 agility_data
 *model*
 config.yaml
+.vscode
