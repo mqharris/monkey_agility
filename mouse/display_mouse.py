@@ -12,11 +12,11 @@ fig = plt.figure()
 ax = fig.add_subplot(111)
 
 
-for i in range(1, 5):
+for i in range(1, 3):
     print(i)
     path = Path(mouse_path)
     path.get_relative_path()
-    rotated = utils.rotate(path.rel_path, 90*i)
+    rotated = utils.rotate(path.rel_path, 180 * i)
     abs_rotated = get_absolute_path(rotated)
     data = np.array(abs_rotated)
     x, y = data.T
