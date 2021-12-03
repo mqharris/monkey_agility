@@ -1,5 +1,5 @@
 from utils import get_angle, rotate
-from path_analysis import Path
+from path_analysis import Path, get_absolute_path
 import math
 
 
@@ -21,8 +21,12 @@ def test_rotate():
 
     rotated_path = rotate(path.rel_path, 90)
     assert rotated_path == [[0, 0], [-1.0, 0.0], [0.0, 1.0]]
-    print(path.rel_path)
-    print(rotated_path)
+
+    abs_path = get_absolute_path(rotated_path)
+
+    r_path = Path(abs_path)
+
+    assert path.length == r_path.length
 
 
 if __name__ == "__main__":

@@ -38,3 +38,13 @@ class Path:
     def get_length(self, data):
         return ((data[0][0] - data[-1][0]) ** 2 +
                 (data[0][1] - data[-1][1]) ** 2) ** (1/2)
+
+
+def get_absolute_path(path_data):
+    path_data = path_data
+    abs_path = [path_data[0]]
+    for i in range(1, len(path_data)):
+        abs_x = path_data[i][0] + abs_path[i-1][0]
+        abs_y = path_data[i][1] + abs_path[i-1][1]
+        abs_path.append([abs_x, abs_y])
+    return abs_path
