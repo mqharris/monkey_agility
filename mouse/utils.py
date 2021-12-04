@@ -16,6 +16,7 @@ def get_angle(data):
 
 
 def rotate(data, angle):
+    # requires relative path data
     # rotates the data of the path by angle radians
     # first point remains the same
     angle = math.radians(angle)
@@ -31,3 +32,19 @@ def rotate(data, angle):
         rotated_points.append([x_hat, y_hat])
 
     return rotated_points
+
+
+def scale(data, scale_factor):
+    # requires relative path data
+    # scales the resultant vector by scale_factor
+    # the first point remains the same
+    # x and y's are scaled independently
+
+    first_point = data[0]
+    data = data[1:]
+
+    scaled_points = [[x[0] * scale_factor, x[1] * scale_factor] for x in data]
+
+    scaled_points = [first_point] + scaled_points
+
+    return scaled_points

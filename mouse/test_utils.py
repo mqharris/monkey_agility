@@ -1,4 +1,4 @@
-from utils import get_angle, rotate
+from utils import get_angle, rotate, scale
 from path_analysis import Path, get_absolute_path
 import math
 
@@ -29,6 +29,25 @@ def test_rotate():
     assert path.length == r_path.length
 
 
+def test_scale():
+
+    data = [[i, i] for i in range(0, 10, 2)]
+
+    path = Path(data)
+    path.get_relative_path()
+
+    scaled_path = scale(path.rel_path, 0.8)
+
+    assert scaled_path == [[0, 0], [1.6, 1.6],
+                           [1.6, 1.6], [1.6, 1.6], [1.6, 1.6]]
+
+    abs_path = get_absolute_path(scaled_path)
+
+    assert abs_path == [[0, 0], [1.6, 1.6], [3.2, 3.2], [
+        4.800000000000001, 4.800000000000001], [6.4, 6.4]]
+
+
 if __name__ == "__main__":
     test_get_angle()
     test_rotate()
+    test_scale()

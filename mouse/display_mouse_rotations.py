@@ -27,20 +27,6 @@ for i in range(1, num_rotations + 1):
     y_r = list(y)
     plt.scatter(x_r, y_r)
 
-
-# data = np.array(mouse_path)
-
-# x, y = data.T
-
-# x = list(x)
-# y = list(y)
-
-# fig = plt.figure()
-# ax = fig.add_subplot(111)
-
-# plt.scatter(x, y, marker="x")
-# plt.scatter(x_r, y_r, marker="o")
-# # plt.axis([1400, 1650, 200, 300])
 plt.xlim(-2500, 2500)
 plt.ylim(-2500, 2500)
 ax.set_aspect('equal', adjustable='box')
