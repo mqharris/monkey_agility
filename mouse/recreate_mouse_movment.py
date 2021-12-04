@@ -1,12 +1,9 @@
-from os import wait
+
 import time
 import pickle
-from matplotlib import pyplot as plt
 import numpy as np
-import utils
-from path_analysis import Path, get_absolute_path
 
-from pynput.mouse import Button, Controller
+from pynput.mouse import Controller
 
 file = open("mouse_path.obj", 'rb')
 mouse_path = pickle.load(file)
