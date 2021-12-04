@@ -13,9 +13,6 @@ mouse_path = pickle.load(file)
 file.close()
 
 
-fig = plt.figure()
-ax = fig.add_subplot(111)
-
 data = np.array([[x[0], x[1]] for x in mouse_path])
 times = np.array([x[2] for x in mouse_path])
 
