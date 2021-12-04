@@ -6,6 +6,7 @@ from path_analysis import Path, get_absolute_path
 
 file = open("mouse_path.obj", 'rb')
 mouse_path = pickle.load(file)
+mouse_path = [[x[0], x[1]] for x in mouse_path]
 file.close()
 
 fig = plt.figure()
