@@ -1,22 +1,19 @@
-import pickle
-from matplotlib import pyplot as plt
 import numpy as np
-
-# file = open("mouse_path.obj", 'rb')
-# mouse_path = pickle.load(file)
-# file.close()
-
-
-# data = np.array(mouse_path)
+import utils
 
 
 class Path:
-    def __init__(self, data):
+    def __init__(self, data, times=None):
         self.data = data
         self.num_points = len(data)
-
         self.length = ((data[0][0] - data[-1][0]) ** 2 +
                        (data[0][1] - data[-1][1]) ** 2) ** (1/2)
+        self.times = times
+        self.modified_path = None
+
+    def get_rel_times(self):
+        rel_times = np.diff(self.times)
+        rel_times = np.insert(rel_times, 0, 0)
 
     def get_relative_path(self):
         rel_path = [self.data[0]]
@@ -38,6 +35,20 @@ class Path:
     def get_length(self, data):
         return ((data[0][0] - data[-1][0]) ** 2 +
                 (data[0][1] - data[-1][1]) ** 2) ** (1/2)
+
+    def rotate_path(self, rotation_amount):
+        if self.modified_path:
+            data = self.modified_path
+        else:
+            data = self.rel_path
+        self.rel_path = utils.rotate(data, rotation_amount)
+
+    def scale_path(self, scale_factor):
+        if self.modified_path:
+            data = self.modified_path
+        else:
+            data = self.rel_path
+        self.rel_path = utils.scale(data, scale_factor)
 
 
 def get_absolute_path(path_data):

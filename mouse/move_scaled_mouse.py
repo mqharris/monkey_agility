@@ -1,9 +1,12 @@
-
 import time
 import pickle
 import numpy as np
+import utils
+from path_analysis import Path, get_absolute_path
 
 from pynput.mouse import Controller
+
+import pyautogui
 
 file = open("mouse_path.obj", 'rb')
 mouse_path = pickle.load(file)
@@ -19,9 +22,24 @@ recorded_time = mouse_path[-1][-1] - mouse_path[0][-1]
 rel_times = np.diff(times)
 rel_times = np.insert(rel_times, 0, 0)
 
+scale_factor = 0.6
+
+path = Path(mouse_path)
+path.get_relative_path()
+scaled = utils.scale(path.rel_path, scale_factor)
+rotated = utils.rotate(scaled, 270)
+data = get_absolute_path(rotated)
+
+original_length = path.length
+
+print("original_length : ", original_length)
+print("expected via calculation : ", original_length * scale_factor)
+print("scaled length : ", path.get_length(data))
+
 mouse = Controller()
 start_time = time.time()
 sum_time = 0
+automated_positions = []
 for i in range(len(data)):
     pos = data[i]
     delta_t = rel_times[i]
@@ -40,13 +58,9 @@ for i in range(len(data)):
     # Method Two
     diff = actual_running_time - expected_running_time
     if diff < 0:
-        time.sleep(0.8*delta_t)
-    if diff > 0:
-        time.sleep(0.0001)
+        time.sleep(delta_t)
+
+    automated_positions.append(pyautogui.position())
 
 
-recreation_time = time.time() - start_time
-
-print("recorded time: ", recorded_time)
-print("recreated_time: ", recreation_time)
-print("sum of the diffs :", np.sum(rel_times))
+print("recreated scale length : ", path.get_length(automated_positions))
