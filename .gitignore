@@ -142,3 +142,4 @@ agility_data
 *model*
 config.yaml
 .vscode
+/mouse/mouse_paths/*
