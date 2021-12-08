@@ -19,42 +19,15 @@ while True:
     number_of_matching_pixels = np.sum(old_screen == current_screen)
     print(number_of_matching_pixels, screen_size, old_screen.shape)
     if number_of_matching_pixels > (0.8 * screen_size):
-        print("Same")
+        print("Not Moving")
     else:
-        print("Different")
+        print("Moving")
 
     old_screen = current_screen
 
     counter += 1
 
-    # time.sleep(0.25)
+    time.sleep(0.25)
 
     if counter % 10 == 0:
         print(counter/(time.time()-start_time))
-
-
-# checking_region = (800, 500, 100, 100)
-
-# old_screen = np.array(pyautogui.screenshot(region=checking_region)).flatten()
-# screen_size = old_screen.size
-
-# start_time = time.time()
-# counter = 0
-
-
-# while True:
-#     current_screen = np.array(pyautogui.screenshot(
-#         region=checking_region)).flatten()
-#     number_of_matching_pixels = np.sum(old_screen == current_screen)
-#     print(number_of_matching_pixels, screen_size, old_screen.shape)
-#     if number_of_matching_pixels > (0.8 * screen_size):
-#         print("Same")
-#     else:
-#         print("Different")
-
-#     old_screen = current_screen
-
-#     counter += 1
-
-#     if counter % 10 == 0:
-#         print(counter/(time.time()-start_time))
