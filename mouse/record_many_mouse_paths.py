@@ -22,13 +22,15 @@ def on_click(x, y, button, pressed):
     print('{0} at {1}'.format(
         'Pressed' if pressed else 'Released',
         (x, y, t)))
-    if not pressed:
+    if not pressed and button.name == "left":
         filehandler = open(
             "./mouse_paths/mouse_path_{}.obj".format(COUNTER), "wb")
         pickle.dump(pos, filehandler)
         filehandler.close()
         pos = []
         COUNTER += 1
+    if not pressed and button.name == "right":
+        pos = []
 
 
 # Collect events until released
