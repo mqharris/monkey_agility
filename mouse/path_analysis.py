@@ -64,22 +64,16 @@ class Path:
         # get scale factor
         original_length = self.get_length(self.data)
         new_length = self.get_length([self.data[0], desired_point])
-
-        print(original_length, new_length)
         scale_factor = new_length / original_length
 
         # rotate path
         self.rotate_path(rotation_angle)
-        print(self.rel_path)
 
         # scale path
         self.scale_path(scale_factor)
 
-        # get abs path
-        fuck = get_absolute_path(self.rel_path)
-        print(fuck)
-
-        # return path
+        # return absolute path for moving the mouse
+        return get_absolute_path(self.rel_path)
 
 
 def get_absolute_path(path_data):
