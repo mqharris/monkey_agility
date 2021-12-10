@@ -10,6 +10,7 @@ class Path:
                        (data[0][1] - data[-1][1]) ** 2) ** (1/2)
         self.times = times
         self.modified_path = None
+        self.get_relative_path()
 
     def get_rel_times(self):
         rel_times = np.diff(self.times)
@@ -49,6 +50,36 @@ class Path:
         else:
             data = self.rel_path
         self.rel_path = utils.scale(data, scale_factor)
+
+    def create_path_to(self, desired_point):
+
+        # get angle of rotation (will be negative becuase x-axis is inverted)
+        rew_resultant = [self.rel_path[0], desired_point]
+        new_angle = utils.get_angle(rew_resultant)
+        old_angle = utils.get_angle(self.data)
+        # this is backwards from expected becuase the y-axis has been flipped
+        # i.e the origin is in the top left rather than the bottom left
+        rotation_angle = new_angle - old_angle
+
+        # get scale factor
+        original_length = self.get_length(self.data)
+        new_length = self.get_length([self.data[0], desired_point])
+
+        print(original_length, new_length)
+        scale_factor = new_length / original_length
+
+        # rotate path
+        self.rotate_path(rotation_angle)
+        print(self.rel_path)
+
+        # scale path
+        self.scale_path(scale_factor)
+
+        # get abs path
+        fuck = get_absolute_path(self.rel_path)
+        print(fuck)
+
+        # return path
 
 
 def get_absolute_path(path_data):
