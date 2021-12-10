@@ -19,7 +19,8 @@ def rotate(data, angle):
     # requires relative path data
     # rotates the data of the path by angle radians
     # first point remains the same
-    angle = math.radians(angle)
+
+    # angle = math.radians(angle)
 
     rotated_points = [data[0]]  # first point doesnt rotate
     for i in range(1, len(data)):

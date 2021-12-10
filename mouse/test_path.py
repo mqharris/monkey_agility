@@ -19,5 +19,14 @@ def test_path():
     assert path.data == path.abs_path
 
 
+def test_create_new_path():
+    data = [[i, i] for i in range(6)]
+    path = Path(data)
+    print(path.rel_path)
+
+    new_path = path.create_path_to([12, 6])
+
+
 if __name__ == "__main__":
     test_path()
+    test_create_new_path()
