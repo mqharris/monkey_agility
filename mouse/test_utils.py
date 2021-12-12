@@ -22,6 +22,7 @@ def test_rotate():
     rotated_path = rotate(path.rel_path, math.radians(90))
     assert rotated_path == [[0, 0], [-1.0, 0.0], [0.0, 1.0]]
 
+    dummy_time_data = [0 for _ in range(len(rotated_path))]
     abs_path = get_absolute_path(rotated_path)
 
     r_path = Path(abs_path)

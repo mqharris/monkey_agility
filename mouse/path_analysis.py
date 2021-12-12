@@ -71,9 +71,11 @@ class Path:
 
         # scale path
         self.scale_path(scale_factor)
+        # scale times
+        scaled_times = [x * scale_factor for x in self.times]
 
-        # return absolute path for moving the mouse
-        return get_absolute_path(self.rel_path)
+        # return absolute path for moving the mouse and scaled times
+        return get_absolute_path(self.rel_path), scaled_times
 
 
 def get_absolute_path(path_data):
