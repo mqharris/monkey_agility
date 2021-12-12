@@ -19,7 +19,7 @@ def numericalSort(value):
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
-files = sorted(glob.glob(os.path.join('./*')), key=numericalSort)
+files = sorted(glob.glob(os.path.join('./mouse_paths/*')), key=numericalSort)
 print(len(files))
 num_to_plot = 6600
 counter = 0

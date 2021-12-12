@@ -19,7 +19,7 @@ def test_rotate():
     path = Path(data)
     path.get_relative_path()
 
-    rotated_path = rotate(path.rel_path, 90)
+    rotated_path = rotate(path.rel_path, math.radians(90))
     assert rotated_path == [[0, 0], [-1.0, 0.0], [0.0, 1.0]]
 
     abs_path = get_absolute_path(rotated_path)
