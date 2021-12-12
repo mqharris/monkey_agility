@@ -1,8 +1,7 @@
 import time
 import pickle
 import numpy as np
-import utils
-from path_analysis import Path, get_absolute_path
+from path_analysis import Path
 
 from pynput.mouse import Controller
 
@@ -12,48 +11,36 @@ file = open("mouse_path.obj", 'rb')
 mouse_path = pickle.load(file)
 file.close()
 
+# where we want our new line to end
+desired_point = (200, 800)
 
+# unpack
 data = np.array([[x[0], x[1]] for x in mouse_path])
 times = np.array([x[2] for x in mouse_path])
 
-
+# for post-hoc comparison
 recorded_time = mouse_path[-1][-1] - mouse_path[0][-1]
-
-rel_times = np.diff(times)
-rel_times = np.insert(rel_times, 0, 0)
-
-desired_point = (800, 800)
-
-path = Path(mouse_path)
-path.get_relative_path()
-scaled = utils.scale(path.rel_path, scale_factor)
-rotated = utils.rotate(scaled, 270)
-data = get_absolute_path(rotated)
-
+path = Path(mouse_path, times)
+scale_factor = path.get_scale_factor(desired_point)
+new_path, new_time = path.create_path_to(desired_point)
 original_length = path.length
-
 print("original_length : ", original_length)
-print("expected via calculation : ", original_length * scale_factor)
-print("scaled length : ", path.get_length(data))
+print("scaled length : ", path.get_length(new_path))
 
+
+# do the movement of the new path to the desired poitn
 mouse = Controller()
 start_time = time.time()
 sum_time = 0
 automated_positions = []
-for i in range(len(data)):
-    pos = data[i]
-    delta_t = rel_times[i]
+for i in range(len(new_path)):
+    pos = new_path[i]
+    delta_t = new_time[i]
 
     mouse.position = (pos[0], pos[1])
 
     actual_running_time = time.time() - start_time
-    expected_running_time = sum(rel_times[:i])
-
-    # Method One, appears to run more smoothly, not necessarily more human like
-    # if actual_running_time > expected_running_time:
-    #     delta_t = delta_t * 0.8
-    # print(delta_t)
-    # time.sleep(delta_t)
+    expected_running_time = sum(new_time[:i])
 
     # Method Two
     diff = actual_running_time - expected_running_time
@@ -64,3 +51,5 @@ for i in range(len(data)):
 
 
 print("recreated scale length : ", path.get_length(automated_positions))
+print("original time :", recorded_time, "new time :", time.time() - start_time)
+print("scale_factor :", scale_factor)

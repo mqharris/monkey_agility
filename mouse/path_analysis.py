@@ -15,6 +15,7 @@ class Path:
     def get_rel_times(self):
         rel_times = np.diff(self.times)
         rel_times = np.insert(rel_times, 0, 0)
+        return rel_times
 
     def get_relative_path(self):
         rel_path = [self.data[0]]
@@ -36,6 +37,12 @@ class Path:
     def get_length(self, data):
         return ((data[0][0] - data[-1][0]) ** 2 +
                 (data[0][1] - data[-1][1]) ** 2) ** (1/2)
+
+    def get_scale_factor(self, desired_point):
+        original_length = self.get_length(self.data)
+        new_length = self.get_length([self.data[0], desired_point])
+        scale_factor = new_length / original_length
+        return scale_factor
 
     def rotate_path(self, rotation_amount):
         if self.modified_path:
@@ -71,9 +78,12 @@ class Path:
 
         # scale path
         self.scale_path(scale_factor)
+        # scale times
+        scaled_times = [
+            x * scale_factor for x in self.get_rel_times()]
 
-        # return absolute path for moving the mouse
-        return get_absolute_path(self.rel_path)
+        # return absolute path for moving the mouse and scaled times
+        return get_absolute_path(self.rel_path), scaled_times
 
 
 def get_absolute_path(path_data):

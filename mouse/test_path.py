@@ -21,10 +21,18 @@ def test_path():
 
 def test_create_new_path():
     data = [[i, i] for i in range(6)]
-    path = Path(data)
-    print(path.rel_path)
+    times = [1 for _ in range(6)]
+    path = Path(data, times)
 
-    new_path = path.create_path_to([12, 6])
+    new_path, new_times = path.create_path_to([12, 6])
+    path2 = Path(new_path, new_times)
+
+    expected_scale_factor = 1.8973665961010275
+
+    assert abs(expected_scale_factor * path.length - path2.length) < 1e-2
+
+    assert abs(expected_scale_factor *
+               sum(path.times) - sum(path2.times)) < 1e-2
 
 
 if __name__ == "__main__":
