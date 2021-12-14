@@ -1,10 +1,9 @@
 import os.path
 import os
 import pickle
+import mouse
 import numpy as np
 import glob
-# import utils
-# import mouse
 from mouse import pathClass
 import re
 
@@ -16,30 +15,48 @@ def numericalSort(value):
     return parts
 
 
-files = sorted(glob.glob(os.path.join('./mouse_paths/*')), key=numericalSort)
-
-
 def load_mouse_paths(path="./mouse/mouse_paths/"):
+    files = sorted(glob.glob(os.path.join(path)), key=numericalSort)
     mouse_paths = {}
     files = sorted(glob.glob(os.path.join(
-        './mouse_paths/*')), key=numericalSort)
+        './mouse/mouse_paths/*')), key=numericalSort)
     for file in files:
-        print(file)
         if "mouse_path_" not in file:
             continue
         file = open(file, 'rb')
         mouse_path = pickle.load(file)
-        mouse_path = [[x[0], x[1]] for x in mouse_path]
+        data = [[x[0], x[1]] for x in mouse_path]
         times = [x[2] for x in mouse_path]
-        path = pathClass.Path(mouse_path, times)
-        if path.length in mouse_paths:
-            mouse_paths[path.length].append(path)
-        else:
-            mouse_path[path.length] = [path]
         file.close()
+        if mouse_path:
+            path = pathClass.Path(data, times)
+        else:
+            continue
+        rounded_length = int(round(path.length, 0))
+        if rounded_length in mouse_paths:
+            mouse_paths[rounded_length].append(path)
+        else:
+            mouse_paths[rounded_length] = [path]
+    return mouse_paths
+
+
+def sort_mouse_paths(mouse_paths):
+    max_length = max(mouse_paths.keys())
+    mouse_path_list = [[] for _ in range(max_length + 1)]
+    for key, value in mouse_paths.items():
+        mouse_path_list[key] = value
+    return mouse_path_list
 
 
 if __name__ == "__main__":
     mouse_paths = load_mouse_paths()
 
-    print(mouse_paths)
+    l = sort_mouse_paths(mouse_paths)
+
+    low = int(900 * 0.8)
+    high = int(900 * 1.2)
+
+    sub = l[low:high]
+    flat = [item for sublist in sub for item in sublist]
+
+    print(l[1001][0].length)
