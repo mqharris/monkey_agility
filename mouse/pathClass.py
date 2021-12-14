@@ -1,5 +1,6 @@
 import numpy as np
-import utils
+from mouse import utils
+# import utils
 
 
 class Path:

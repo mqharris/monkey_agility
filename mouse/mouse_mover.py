@@ -1,7 +1,7 @@
 import time
 import pickle
 import numpy as np
-from path_analysis import Path
+from pathClass import Path
 
 from pynput.mouse import Controller
 

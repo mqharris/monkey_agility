@@ -21,7 +21,7 @@ fig = plt.figure()
 ax = fig.add_subplot(111)
 files = sorted(glob.glob(os.path.join('./mouse_paths/*')), key=numericalSort)
 print(len(files))
-num_to_plot = 6600
+num_to_plot = 60
 counter = 0
 for file in files:
     print(file)
