@@ -1,5 +1,4 @@
 from mouse import pathClass
-# import pathClass
 import numpy as np
 import pytest
 

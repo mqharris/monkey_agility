@@ -4,8 +4,6 @@ import pickle
 from matplotlib import colors, pyplot as plt
 import numpy as np
 import glob
-# import utils
-# from path_analysis import Path, get_absolute_path
 
 import re
 numbers = re.compile(r'(\d+)')
