@@ -1,3 +1,4 @@
+from detectron2.utils.visualizer import Visualizer, ColorMode
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
 from detectron2 import model_zoo
@@ -7,11 +8,24 @@ from mouse_path_loader import load_mouse_paths
 from movement_detector import is_there_movement
 from pickle import load
 import time
+import cv2
+import matplotlib.pyplot as plt
 import torch
 import pyautogui
+import numpy as np
 TORCH_VERSION = ".".join(torch.__version__.split(".")[:2])
 CUDA_VERSION = torch.__version__.split("+")[-1]
 print(torch.__version__)
+
+# to set colors for masking
+detectron2.utils.visualizer.ColorMode(1)
+# FOR TESTING
+# FOR TESTING
+
+
+class MyVisualizer(Visualizer):
+    def _jitter(self, color):
+        return (.2, .71, .25)
 
 
 setup_logger()
@@ -32,6 +46,8 @@ if __name__ == "__main__":
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
     predictor = DefaultPredictor(cfg)
 
+    print("starting monkey agility")
+    num_iterations = 0
     while True:
         start_time = time.time()
 
@@ -41,6 +57,39 @@ if __name__ == "__main__":
             is_moving = is_there_movement(0.8, 0.25)
         print("agent has stopped")
 
+        # detect obstacles in frame
+
+        # # 1.1s each iteration on average
+        # screen_data = pyautogui.screenshot(region=(0, 0, 1920, 1080))
+        # image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
+        # outputs = predictor(image)
+
+        # 0.65s each iteration on average
+        from mss import mss
+        sct = mss()
+        bounding_box = {'top': 0, 'left': 0, 'width': 1920, 'height': 1080}
+        screen_data = np.array(sct.grab(bounding_box))
+        image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
+        outputs = predictor(image)
+
+        v = MyVisualizer(image[:, :, ::-1],
+                         metadata=detectron2.data.catalog.Metadata(name='balloon_train', thing_classes=[
+                                                                   'staging', 'obstacle'], thing_colors=[(100, 100, 100), (100, 200, 100)]),
+                         scale=0.5,
+                         # remove the colors of unsegmented pixels. This option is only available for segmentation models
+                         instance_mode=ColorMode.SEGMENTATION
+                         )
+        out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+
+        print("obstacles", out)
+
+        # plt.figure(figsize=(15, 15))
+        # plt.imshow(out.get_image())
+        # plt.xticks([]), plt.yticks([])  # Hides the graph ticks and x / y axis
+        # plt.show()
+
         # get mouse's current location
         current_mouse_position = pyautogui.position()
         print(current_mouse_position)
+
+        print("time taken for 1 loop:", time.time() - start_time)
