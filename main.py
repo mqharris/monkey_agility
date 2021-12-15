@@ -70,10 +70,22 @@ if __name__ == "__main__":
 
         # 0.65s each iteration on average
         # but accuracy seems worse with mss()
-        sct = mss()
-        bounding_box = {'top': 0, 'left': 0, 'width': 1920, 'height': 1080}
-        screen_data = np.array(sct.grab(bounding_box))
-        image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
+        # sct = mss()
+        # bounding_box = {'top': 0, 'left': 0, 'width': 1920, 'height': 1080}
+        # screen_data = np.array(sct.grab(bounding_box))
+        # image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
+
+        if screen_shot_method == 1:
+            print("mss for screen shot method")
+            sct = mss()
+            bounding_box = {'top': 0, 'left': 0, 'width': 1920, 'height': 1080}
+            screen_data = np.array(sct.grab(bounding_box))
+            image = cv2.cvtColor(np.array(screen_data))
+        elif screen_shot_method == 0:
+            print("pyautogui for screen shot method")
+            screen_data = pyautogui.screenshot(region=(0, 0, 1920, 1080))
+            image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
+            image = image[:, :, ::-1]
 
         outputs = predictor(image)
 
