@@ -12,6 +12,7 @@ import cv2
 import matplotlib.pyplot as plt
 import torch
 import pyautogui
+from mss import mss
 import numpy as np
 TORCH_VERSION = ".".join(torch.__version__.split(".")[:2])
 CUDA_VERSION = torch.__version__.split("+")[-1]
@@ -31,6 +32,10 @@ class MyVisualizer(Visualizer):
 setup_logger()
 
 if __name__ == "__main__":
+
+    # 0 means pyautogui - slower but with better accuracy
+    # 1 means mss - faster with lower accuracy
+    screen_shot_method = 0
 
     # load mouse path data
     print("loading mouse paths")
@@ -62,31 +67,39 @@ if __name__ == "__main__":
         # # 1.1s each iteration on average
         # screen_data = pyautogui.screenshot(region=(0, 0, 1920, 1080))
         # image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
-        # outputs = predictor(image)
 
         # 0.65s each iteration on average
-        from mss import mss
+        # but accuracy seems worse with mss()
         sct = mss()
         bounding_box = {'top': 0, 'left': 0, 'width': 1920, 'height': 1080}
         screen_data = np.array(sct.grab(bounding_box))
         image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
+
         outputs = predictor(image)
 
-        v = MyVisualizer(image[:, :, ::-1],
-                         metadata=detectron2.data.catalog.Metadata(name='balloon_train', thing_classes=[
-                                                                   'staging', 'obstacle'], thing_colors=[(100, 100, 100), (100, 200, 100)]),
-                         scale=0.5,
-                         # remove the colors of unsegmented pixels. This option is only available for segmentation models
-                         instance_mode=ColorMode.SEGMENTATION
-                         )
+        # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+        # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+        v = MyVisualizer(
+            # image # Used with mss's screen shot method
+            image[:, :, ::-1],  # Used with pyautogui's screen shot method
+            metadata=detectron2.data.catalog.Metadata(name='balloon_train', thing_classes=[
+                'staging', 'obstacle'], thing_colors=[(100, 100, 100), (100, 200, 100)]),
+            scale=0.5,
+            # remove the colors of unsegmented pixels. This option is only available for segmentation models
+            instance_mode=ColorMode.SEGMENTATION
+        )
         out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
 
-        print("obstacles", out)
+        # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+        plt.figure(figsize=(15, 15))
+        plt.imshow(out.get_image())
+        plt.xticks([]), plt.yticks([])  # Hides the graph ticks and x / y axis
+        plt.show()
+        # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+        # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
 
-        # plt.figure(figsize=(15, 15))
-        # plt.imshow(out.get_image())
-        # plt.xticks([]), plt.yticks([])  # Hides the graph ticks and x / y axis
-        # plt.show()
+        centers = outputs["instances"].get_fields()["pred_boxes"].get_centers()
+        print("obstacles' middle point", centers)
 
         # get mouse's current location
         current_mouse_position = pyautogui.position()
