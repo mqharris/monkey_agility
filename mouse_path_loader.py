@@ -37,7 +37,7 @@ def load_mouse_paths(path="./mouse/mouse_paths/"):
             mouse_paths[rounded_length].append(path)
         else:
             mouse_paths[rounded_length] = [path]
-    return mouse_paths
+    return sort_mouse_paths(mouse_paths)
 
 
 def sort_mouse_paths(mouse_paths):
@@ -49,9 +49,7 @@ def sort_mouse_paths(mouse_paths):
 
 
 if __name__ == "__main__":
-    mouse_paths = load_mouse_paths()
-
-    l = sort_mouse_paths(mouse_paths)
+    l = load_mouse_paths()
 
     low = int(900 * 0.8)
     high = int(900 * 1.2)
