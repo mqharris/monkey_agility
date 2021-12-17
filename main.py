@@ -35,7 +35,10 @@ if __name__ == "__main__":
 
     # 0 means pyautogui - slower but with better accuracy
     # 1 means mss - faster with lower accuracy
-    screen_shot_method = 0
+    screen_shot_method = 1
+
+    # used for mss method and is_moving()
+    sct = mss()
 
     # load mouse path data
     print("loading mouse paths")
@@ -59,7 +62,7 @@ if __name__ == "__main__":
         # wait until agent stops moving for next instruction
         is_moving = True
         while is_moving:
-            is_moving = is_there_movement(0.8, 0.25)
+            is_moving = is_there_movement(0.8, 0.25, sct)
         print("agent has stopped")
 
         # detect obstacles in frame
@@ -77,10 +80,10 @@ if __name__ == "__main__":
 
         if screen_shot_method == 1:
             print("mss for screen shot method")
-            sct = mss()
+            # sct = mss()
             bounding_box = {'top': 0, 'left': 0, 'width': 1920, 'height': 1080}
             screen_data = np.array(sct.grab(bounding_box))
-            image = cv2.cvtColor(np.array(screen_data))
+            image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
         elif screen_shot_method == 0:
             print("pyautogui for screen shot method")
             screen_data = pyautogui.screenshot(region=(0, 0, 1920, 1080))
@@ -89,20 +92,21 @@ if __name__ == "__main__":
 
         outputs = predictor(image)
 
+        import pdb
+        pdb.set_trace()
+
         # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
         # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
         v = MyVisualizer(
-            # image # Used with mss's screen shot method
-            image[:, :, ::-1],  # Used with pyautogui's screen shot method
+            image,
             metadata=detectron2.data.catalog.Metadata(name='balloon_train', thing_classes=[
                 'staging', 'obstacle'], thing_colors=[(100, 100, 100), (100, 200, 100)]),
             scale=0.5,
             # remove the colors of unsegmented pixels. This option is only available for segmentation models
             instance_mode=ColorMode.SEGMENTATION
         )
-        out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
-
         # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+        out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
         plt.figure(figsize=(15, 15))
         plt.imshow(out.get_image())
         plt.xticks([]), plt.yticks([])  # Hides the graph ticks and x / y axis
