@@ -4,9 +4,10 @@ import time
 from mss import mss
 
 
-def is_there_movement(percent_matching_pixels=0.8, wait_timer=0.25):
+def is_there_movement(percent_matching_pixels=0.8, wait_timer=0.25, sct=None):
     bounding_box = {'top': 500, 'left': 500, 'width': 400, 'height': 300}
-    sct = mss()
+    if not sct:
+        sct = mss()
     old_screen = np.array(sct.grab(bounding_box))
     screen_size = old_screen.size
     while True:
