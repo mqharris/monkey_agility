@@ -17,8 +17,13 @@ This model detects the agility course's obstacle regions and outputs x-y coordin
 This component takes the output of the machine vision model and then interacts with the in game environment. This is achieved by moving the mouse pointer and clicking the agility obstacles. The goal is to interact with the environment as a human would. First a collection of human mouse movements was recorded. Then when needed a random line is selected and then scaled and rotated to be able to end on any arbitrary location on the screen, clicking the obstacle, and progressing the game.
 
 
+## Logic Flow
 ------------
+![](logic_flow.png)
 
+
+
+------------
 The train and val data sets and the model are not currently uploaded
 
-
+Run tests from main with `python -m pytest`
