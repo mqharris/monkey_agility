@@ -39,5 +39,5 @@ def test_create_new_path():
 
 if __name__ == "__main__":
     test_path()
-    # test_path_rel_times()
+    test_path_rel_times()
     test_create_new_path()
