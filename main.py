@@ -1,3 +1,4 @@
+from pynput.keyboard import Key, Listener
 from detectron2.utils.visualizer import Visualizer, ColorMode
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
@@ -6,7 +7,7 @@ from detectron2.utils.logger import setup_logger
 import detectron2
 from mouse_path_loader import load_mouse_paths
 from movement_detector import is_there_movement
-from pickle import load
+from pickle import FALSE, load
 import time
 import cv2
 import matplotlib.pyplot as plt
@@ -14,6 +15,7 @@ import torch
 import pyautogui
 from mss import mss
 import numpy as np
+from pynput import keyboard
 TORCH_VERSION = ".".join(torch.__version__.split(".")[:2])
 CUDA_VERSION = torch.__version__.split("+")[-1]
 print(torch.__version__)
@@ -23,10 +25,28 @@ detectron2.utils.visualizer.ColorMode(1)
 # FOR TESTING
 # FOR TESTING
 
+# FOR TESTING
+
 
 class MyVisualizer(Visualizer):
     def _jitter(self, color):
         return (.2, .71, .25)
+# FOR TESTING
+
+
+# for pausing and resuming the main loop
+PAUSE_FLAG = False
+EXIT_FLAG = False
+
+
+def on_press(key):
+    global PAUSE_FLAG
+    global EXIT_FLAG
+    if key == keyboard.Key.ctrl:
+        PAUSE_FLAG = not PAUSE_FLAG
+    if key == keyboard.Key.esc:
+        EXIT_FLAG = True
+        PAUSE_FLAG = not PAUSE_FLAG
 
 
 CONFIDENCE_THRESHOLD = 0.8
@@ -34,6 +54,10 @@ CONFIDENCE_THRESHOLD = 0.8
 setup_logger()
 
 if __name__ == "__main__":
+
+    listener = keyboard.Listener(
+        on_press=on_press)
+    listener.start()
 
     # 0 means pyautogui - slower but with better accuracy
     # 1 means mss - faster with lower accuracy
@@ -59,64 +83,72 @@ if __name__ == "__main__":
     print("starting monkey agility")
     num_iterations = 0
     while True:
-        start_time = time.time()
+        if not PAUSE_FLAG:
 
-        # wait until agent stops moving for next instruction
-        is_moving = True
-        while is_moving:
-            is_moving = is_there_movement(0.8, 0.25, sct)
-        print("agent has stopped")
+            if EXIT_FLAG:
+                print("exiting program")
+                exit()
 
-        # detect obstacles in frame
-        if screen_shot_method == 1:
-            print("mss for screen shot method")
-            # sct = mss()
-            bounding_box = {'top': 0, 'left': 0, 'width': 1920, 'height': 1080}
-            screen_data = np.array(sct.grab(bounding_box))
-            image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
-        elif screen_shot_method == 0:
-            print("pyautogui for screen shot method")
-            screen_data = pyautogui.screenshot(region=(0, 0, 1920, 1080))
-            image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
-            image = image[:, :, ::-1]
+            start_time = time.time()
 
-        outputs = predictor(image)
+            # wait until agent stops moving for next instruction
+            is_moving = True
+            while is_moving:
+                is_moving = is_there_movement(0.8, 0.25, sct)
+            print("agent has stopped")
 
-        import pdb
-        pdb.set_trace()
+            # detect obstacles in frame
+            if screen_shot_method == 1:
+                print("mss for screen shot method")
+                bounding_box = {'top': 0, 'left': 0,
+                                'width': 1920, 'height': 1080}
+                screen_data = np.array(sct.grab(bounding_box))
+                image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
+            elif screen_shot_method == 0:
+                print("pyautogui for screen shot method")
+                screen_data = pyautogui.screenshot(region=(0, 0, 1920, 1080))
+                image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
+                image = image[:, :, ::-1]
 
-        # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-        # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-        v = MyVisualizer(
-            image,
-            metadata=detectron2.data.catalog.Metadata(name='balloon_train', thing_classes=[
-                'staging', 'obstacle'], thing_colors=[(100, 100, 100), (100, 200, 100)]),
-            scale=0.5,
-            # remove the colors of unsegmented pixels. This option is only available for segmentation models
-            instance_mode=ColorMode.SEGMENTATION
-        )
-        # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-        out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
-        plt.figure(figsize=(15, 15))
-        plt.imshow(out.get_image())
-        plt.xticks([]), plt.yticks([])  # Hides the graph ticks and x / y axis
-        plt.show()
-        # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-        # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            outputs = predictor(image)
 
-        centers = outputs["instances"].get_fields()["pred_boxes"].get_centers()
-        print("obstacles' middle point", centers)
+            # import pdb
+            # pdb.set_trace()
 
-        # get mouse's current location
-        current_mouse_position = pyautogui.position()
-        print(current_mouse_position)
+            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            # v = MyVisualizer(
+            #     image,
+            #     metadata=detectron2.data.catalog.Metadata(name='balloon_train', thing_classes=[
+            #         'staging', 'obstacle'], thing_colors=[(100, 100, 100), (100, 200, 100)]),
+            #     scale=0.5,
+            #     # remove the colors of unsegmented pixels. This option is only available for segmentation models
+            #     instance_mode=ColorMode.SEGMENTATION
+            # )
+            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            # out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+            # plt.figure(figsize=(15, 15))
+            # plt.imshow(out.get_image())
+            # # Hides the graph ticks and x / y axis
+            # plt.xticks([]), plt.yticks([])
+            # plt.show()
+            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
 
-        # calculate the distance from the middle of the screen and the center
-        # of each detected obstacle
-        # the logic is as follows:
-        # pick the closest obstacle, if there is one or more obstacles
-        # pick the obstacle, if staging and an obstacle has been detected
-        # pick staging, if there is just staging detected
-        # pick staging, if there is is staging and more than one obstacle detected
+            centers = outputs["instances"].get_fields()[
+                "pred_boxes"].get_centers()
+            print("obstacles' middle point", centers)
 
-        print("time taken for 1 loop:", time.time() - start_time)
+            # get mouse's current location
+            current_mouse_position = pyautogui.position()
+            print(current_mouse_position)
+
+            # calculate the distance from the middle of the screen and the center
+            # of each detected obstacle
+            # the logic is as follows:
+            # pick the closest obstacle, if there is one or more obstacles
+            # pick the obstacle, if staging and an obstacle has been detected
+            # pick staging, if there is just staging detected
+            # pick staging, if there is is staging and more than one obstacle detected
+
+            print("time taken for 1 loop:", time.time() - start_time)
