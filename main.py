@@ -18,7 +18,7 @@ import numpy as np
 from pynput import keyboard
 TORCH_VERSION = ".".join(torch.__version__.split(".")[:2])
 CUDA_VERSION = torch.__version__.split("+")[-1]
-print(torch.__version__)
+print("torch version: ", torch.__version__)
 
 # to set colors for masking
 detectron2.utils.visualizer.ColorMode(1)
