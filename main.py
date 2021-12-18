@@ -29,6 +29,8 @@ class MyVisualizer(Visualizer):
         return (.2, .71, .25)
 
 
+CONFIDENCE_THRESHOLD = 0.8
+
 setup_logger()
 
 if __name__ == "__main__":
@@ -49,7 +51,7 @@ if __name__ == "__main__":
     cfg = get_cfg()
     cfg.merge_from_file(model_zoo.get_config_file(
         'COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml'))
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # Set threshold for this model
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = CONFIDENCE_THRESHOLD
     cfg.MODEL.WEIGHTS = './agility_model.pth'  # Set path model .pth
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
     predictor = DefaultPredictor(cfg)
@@ -66,18 +68,6 @@ if __name__ == "__main__":
         print("agent has stopped")
 
         # detect obstacles in frame
-
-        # # 1.1s each iteration on average
-        # screen_data = pyautogui.screenshot(region=(0, 0, 1920, 1080))
-        # image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
-
-        # 0.65s each iteration on average
-        # but accuracy seems worse with mss()
-        # sct = mss()
-        # bounding_box = {'top': 0, 'left': 0, 'width': 1920, 'height': 1080}
-        # screen_data = np.array(sct.grab(bounding_box))
-        # image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
-
         if screen_shot_method == 1:
             print("mss for screen shot method")
             # sct = mss()
@@ -120,5 +110,13 @@ if __name__ == "__main__":
         # get mouse's current location
         current_mouse_position = pyautogui.position()
         print(current_mouse_position)
+
+        # calculate the distance from the middle of the screen and the center
+        # of each detected obstacle
+        # the logic is as follows:
+        # pick the closest obstacle, if there is one or more obstacles
+        # pick the obstacle, if staging and an obstacle has been detected
+        # pick staging, if there is just staging detected
+        # pick staging, if there is is staging and more than one obstacle detected
 
         print("time taken for 1 loop:", time.time() - start_time)
