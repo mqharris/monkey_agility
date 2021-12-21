@@ -112,28 +112,28 @@ if __name__ == "__main__":
 
             outputs = predictor(image)
 
-            # import pdb
-            # pdb.set_trace()
+            import pdb
+            pdb.set_trace()
 
-            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-            # v = MyVisualizer(
-            #     image,
-            #     metadata=detectron2.data.catalog.Metadata(name='balloon_train', thing_classes=[
-            #         'staging', 'obstacle'], thing_colors=[(100, 100, 100), (100, 200, 100)]),
-            #     scale=0.5,
-            #     # remove the colors of unsegmented pixels. This option is only available for segmentation models
-            #     instance_mode=ColorMode.SEGMENTATION
-            # )
-            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-            # out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
-            # plt.figure(figsize=(15, 15))
-            # plt.imshow(out.get_image())
-            # # Hides the graph ticks and x / y axis
-            # plt.xticks([]), plt.yticks([])
-            # plt.show()
-            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            v = MyVisualizer(
+                image,
+                metadata=detectron2.data.catalog.Metadata(name='balloon_train', thing_classes=[
+                    'staging', 'obstacle'], thing_colors=[(100, 100, 100), (100, 200, 100)]),
+                scale=0.5,
+                # remove the colors of unsegmented pixels. This option is only available for segmentation models
+                instance_mode=ColorMode.SEGMENTATION
+            )
+            # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+            plt.figure(figsize=(15, 15))
+            plt.imshow(out.get_image())
+            # Hides the graph ticks and x / y axis
+            plt.xticks([]), plt.yticks([])
+            plt.show()
+            # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
 
             centers = outputs["instances"].get_fields()[
                 "pred_boxes"].get_centers()
