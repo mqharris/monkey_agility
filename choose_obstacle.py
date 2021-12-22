@@ -1,8 +1,13 @@
-from detectron2.structures import instances
+from detectron2.structures import instances, boxes
 import torch
 import math
 import numpy as np
 from collections import Counter
+
+
+def get_click_location(instance):
+    box = instance["pred_boxes"]
+    return [(box[2] + box[0])//2, (box[3] + box[1])//2]
 
 
 def distance(p, q):
@@ -40,7 +45,6 @@ def choose_obstacle(instance):
         index = int(np.where(instance_as_np["pred_classes"] == 0)[0])
     elif instance_case == "only_obstacles":
         center_of_the_screen = [int(1920/2), int(1080/2)]
-        centers = instance["pred_boxes"].get_centers()
         distances = [distance(center_of_the_screen, x)
                      for x in instance["pred_boxes"].get_centers()]
         index = distances.index(min(distances))

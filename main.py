@@ -1,3 +1,4 @@
+from numpy.core.fromnumeric import choose
 from pynput.keyboard import Key, Listener
 from detectron2.utils.visualizer import Visualizer, ColorMode
 from detectron2.config import get_cfg
@@ -16,6 +17,7 @@ import pyautogui
 from mss import mss
 import numpy as np
 from pynput import keyboard
+import choose_obstacle
 TORCH_VERSION = ".".join(torch.__version__.split(".")[:2])
 CUDA_VERSION = torch.__version__.split("+")[-1]
 print("torch version: ", torch.__version__)
@@ -112,43 +114,40 @@ if __name__ == "__main__":
 
             outputs = predictor(image)
 
-            import pdb
-            pdb.set_trace()
+            # import pdb
+            # pdb.set_trace()
 
-            # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-            # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-            v = MyVisualizer(
-                image,
-                metadata=detectron2.data.catalog.Metadata(name='balloon_train', thing_classes=[
-                    'staging', 'obstacle'], thing_colors=[(100, 100, 100), (100, 200, 100)]),
-                scale=0.5,
-                # remove the colors of unsegmented pixels. This option is only available for segmentation models
-                instance_mode=ColorMode.SEGMENTATION
-            )
-            # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-            out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
-            plt.figure(figsize=(15, 15))
-            plt.imshow(out.get_image())
-            # Hides the graph ticks and x / y axis
-            plt.xticks([]), plt.yticks([])
-            plt.show()
-            # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-            # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            # v = MyVisualizer(
+            #     image,
+            #     metadata=detectron2.data.catalog.Metadata(name='balloon_train', thing_classes=[
+            #         'staging', 'obstacle'], thing_colors=[(100, 100, 100), (100, 200, 100)]),
+            #     scale=0.5,
+            #     # remove the colors of unsegmented pixels. This option is only available for segmentation models
+            #     instance_mode=ColorMode.SEGMENTATION
+            # )
+            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            # out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+            # plt.figure(figsize=(15, 15))
+            # plt.imshow(out.get_image())
+            # # Hides the graph ticks and x / y axis
+            # plt.xticks([]), plt.yticks([])
+            # plt.show()
+            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
 
-            centers = outputs["instances"].get_fields()[
-                "pred_boxes"].get_centers()
-            print("obstacles' middle point", centers)
+            # centers = outputs["instances"].get_fields()[
+            #     "pred_boxes"].get_centers()
+            # print("obstacles' middle point", centers)
 
             # get mouse's current location
             current_mouse_position = pyautogui.position()
-            print(current_mouse_position)
-
-            # calculate the distance from the middle of the screen and the center
-            # of each detected obstacle
-            # the logic is as follows:
-            # pick the closest obstacle, if there is one or more obstacles
-            # pick the obstacle, if staging and an obstacle has been detected
-            # pick staging, if there is just staging detected
-            # pick staging, if there is is staging and more than one obstacle detected
+            obstacle_to_click = choose_obstacle.choose_obstacle(
+                outputs["instances"].get_fields())
+            where_to_click = choose_obstacle.get_click_location(
+                obstacle_to_click)
+            print("current mouse location : {}, move mouse to : {}".format(
+                current_mouse_position, where_to_click))
 
             print("time taken for 1 loop:", time.time() - start_time)
