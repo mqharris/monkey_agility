@@ -32,7 +32,7 @@ def create_one_staging_one_obstacle():
     return fields
 
 
-def create_only_one_obstacle():
+def create_one_obstacle():
     cuda0 = torch.device("cuda:0")
     pred_box_data = torch.tensor(
         [[888.4476, 515.3109, 987.8469, 615.1198]],
@@ -58,6 +58,94 @@ def create_only_one_obstacle():
     return fields
 
 
+def create_multiple_obstacles():
+    cuda0 = torch.device("cuda:0")
+    pred_box_data = torch.tensor(
+        [[888.4476, 515.3109, 987.8469, 615.1198],
+         [1000.0000, 1010.0000, 1020.0000, 1040.0000]],
+        device=cuda0)
+    scores = torch.tensor(
+        [0.8989, 0.9000],
+        device=cuda0
+    )
+    pred_classes = torch.tensor(
+        [1, 1],
+        device=cuda0
+    )
+    pred_masks = torch.tensor(
+        [[False, False]],
+        device=cuda0
+    )
+    fields = {
+        "pred_boxes": boxes.Boxes(pred_box_data),
+        "scores": scores,
+        "pred_classes": pred_classes,
+        "pred_masks": pred_masks
+    }
+    return fields
+
+
+def create_only_staging():
+    cuda0 = torch.device("cuda:0")
+    pred_box_data = torch.tensor(
+        [[888.4476, 515.3109, 987.8469, 615.1198]],
+        device=cuda0)
+    scores = torch.tensor(
+        [0.8989],
+        device=cuda0
+    )
+    pred_classes = torch.tensor(
+        [0],
+        device=cuda0
+    )
+    pred_masks = torch.tensor(
+        [[False, False]],
+        device=cuda0
+    )
+    fields = {
+        "pred_boxes": boxes.Boxes(pred_box_data),
+        "scores": scores,
+        "pred_classes": pred_classes,
+        "pred_masks": pred_masks
+    }
+    return fields
+
+
+def create_staging_and_multiple():
+    cuda0 = torch.device("cuda:0")
+    pred_box_data = torch.tensor(
+        [[888.4476, 515.3109, 987.8469, 615.1198],
+         [1000.0000, 1010.0000, 1020.0000, 1040.0000],
+         [10, 20, 30, 40]],
+        device=cuda0)
+    scores = torch.tensor(
+        [0.8989, 0.9000, 0.9100],
+        device=cuda0
+    )
+    pred_classes = torch.tensor(
+        [0, 1, 1],
+        device=cuda0
+    )
+    pred_masks = torch.tensor(
+        [[False, False], [False, False], [False, False]],
+        device=cuda0
+    )
+    fields = {
+        "pred_boxes": boxes.Boxes(pred_box_data),
+        "scores": scores,
+        "pred_classes": pred_classes,
+        "pred_masks": pred_masks
+    }
+    return fields
+
+
+def test_distance():
+    assert co.distance([5], [3]) == 2
+    assert co.distance([6, 8], [0, 0]) == 10
+    assert co.distance([-4, -3], [4, 3]) == 10
+    assert co.distance([0, 0], [1, 2]) != 1000
+
+
 def test_which_instance_case():
     one_one = create_one_staging_one_obstacle()
     one_one = co.instance_to_numpy(one_one)
@@ -66,8 +154,25 @@ def test_which_instance_case():
 
 
 def test_choose_obstacle():
+    # case staging_and_one_obstacle
     returned = co.choose_obstacle(create_one_staging_one_obstacle())
-    expected = co.instance_to_numpy(create_only_one_obstacle())
+    expected = co.instance_to_numpy(create_one_obstacle())
+    for key, value in returned.items():
+        assert np.all(value == expected[key])
+    # case only staging
+    returned = co.choose_obstacle(create_only_staging())
+    expected = co.instance_to_numpy(create_only_staging())
+    for key, value in returned.items():
+        assert np.all(value == expected[key])
+    # case staging and multiple
+    joined_dict = {**create_only_staging(), **create_multiple_obstacles()}
+    returned = co.choose_obstacle(create_staging_and_multiple())
+    expected = co.instance_to_numpy(create_only_staging())
+    for key, value in returned.items():
+        assert np.all(value == expected[key])
+    # case multiple objects and no staging
+    returned = co.choose_obstacle(create_multiple_obstacles())
+    expected = co.instance_to_numpy(create_one_obstacle())
     for key, value in returned.items():
         assert np.all(value == expected[key])
 
@@ -75,7 +180,7 @@ def test_choose_obstacle():
 def test_instance_to_numpy():
     one_one = create_one_staging_one_obstacle()
     pred_box_data = np.array([[479.2353, 769.0834, 572.7275, 829.9853], [
-                             888.4476, 515.3109, 987.8469, 615.1198]], dtype="float32")
+        888.4476, 515.3109, 987.8469, 615.1198]], dtype="float32")
     scores = np.array([0.9131, 0.8989], dtype="float32")
     pred_classes = np.array([0, 1])
     pred_masks = np.array([[False, False], [False, False]])
