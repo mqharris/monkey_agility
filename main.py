@@ -1,4 +1,3 @@
-from numpy.core.fromnumeric import choose
 from pynput.keyboard import Key, Listener
 from detectron2.utils.visualizer import Visualizer, ColorMode
 from detectron2.config import get_cfg
@@ -18,6 +17,9 @@ from mss import mss
 import numpy as np
 from pynput import keyboard
 import choose_obstacle
+import random
+from mouse import Path
+from pynput.mouse import Controller
 TORCH_VERSION = ".".join(torch.__version__.split(".")[:2])
 CUDA_VERSION = torch.__version__.split("+")[-1]
 print("torch version: ", torch.__version__)
@@ -81,6 +83,8 @@ if __name__ == "__main__":
     cfg.MODEL.WEIGHTS = './agility_model.pth'  # Set path model .pth
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
     predictor = DefaultPredictor(cfg)
+
+    mouse_controller = Controller()
 
     print("starting monkey agility")
     num_iterations = 0
@@ -149,5 +153,40 @@ if __name__ == "__main__":
                 obstacle_to_click)
             print("current mouse location : {}, move mouse to : {}".format(
                 current_mouse_position, where_to_click))
+
+            # choose a mouse path
+            distance = choose_obstacle.distance(
+                current_mouse_position, where_to_click)
+            low = int(0.8 * distance)
+            high = int(1.2 * distance)
+            paths = mouse_paths[low:high]
+            flat = [item for sublist in paths for item in sublist]
+            try:
+                path = random.choice(flat)
+            except IndexError:
+                print("continuing due to no path found")
+                continue
+            # scale and rotate to new location
+            path.rel_path[0] = current_mouse_position
+            new_path, new_time = path.create_path_to(where_to_click)
+            mouse_time = time.time()
+
+            # move mouse to new location
+            for i in range(len(new_path)):
+                pos = new_path[i]
+                delta_t = new_time[i]
+
+                mouse_controller.position = (pos[0], pos[1])
+
+                actual_running_time = time.time() - mouse_time
+                expected_running_time = sum(new_time[:i])
+
+                # Method Two
+                diff = actual_running_time - expected_running_time
+                if diff < 0:
+                    time.sleep(delta_t)
+            # add a click
+            # pyautogui.click()
+            time.sleep(0.33)
 
             print("time taken for 1 loop:", time.time() - start_time)

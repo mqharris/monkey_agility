@@ -4,7 +4,7 @@ import pickle
 import mouse
 import numpy as np
 import glob
-from mouse import pathClass
+from mouse import Path
 import re
 
 
@@ -29,7 +29,7 @@ def load_mouse_paths(path="./mouse/mouse_paths/"):
         times = [x[2] for x in mouse_path]
         file.close()
         if mouse_path:
-            path = pathClass.Path(data, times)
+            path = Path.Path(mouse_path, times)
         else:
             continue
         rounded_length = int(round(path.length, 0))
@@ -57,4 +57,4 @@ if __name__ == "__main__":
     sub = l[low:high]
     flat = [item for sublist in sub for item in sublist]
 
-    print(l[1001][0].length)
+    print(len(flat))

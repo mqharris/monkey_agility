@@ -70,8 +70,9 @@ class Path:
 
         # get scale factor
         original_length = self.get_length(self.data)
-        new_length = self.get_length([self.data[0], desired_point])
+        new_length = self.get_length([self.rel_path[0], desired_point])
         scale_factor = new_length / original_length
+        print("scale factor", scale_factor)
 
         # rotate path
         self.rotate_path(rotation_angle)
@@ -79,7 +80,9 @@ class Path:
         # scale path
         self.scale_path(scale_factor)
         # scale times
-        scaled_times = [x * scale_factor for x in self.get_rel_times()]
+        rel_times = self.get_rel_times()
+        rel_tail = rel_times[-100:]
+        scaled_times = [x * scale_factor for x in rel_times]
 
         # return absolute path for moving the mouse and scaled times
         return get_absolute_path(self.rel_path), scaled_times
