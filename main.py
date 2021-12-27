@@ -117,36 +117,14 @@ if __name__ == "__main__":
                 image = image[:, :, ::-1]
 
             outputs = predictor(image)
-
-            # import pdb
-            # pdb.set_trace()
-
-            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-            # v = MyVisualizer(
-            #     image,
-            #     metadata=detectron2.data.catalog.Metadata(name='balloon_train', thing_classes=[
-            #         'staging', 'obstacle'], thing_colors=[(100, 100, 100), (100, 200, 100)]),
-            #     scale=0.5,
-            #     # remove the colors of unsegmented pixels. This option is only available for segmentation models
-            #     instance_mode=ColorMode.SEGMENTATION
-            # )
-            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-            # out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
-            # plt.figure(figsize=(15, 15))
-            # plt.imshow(out.get_image())
-            # # Hides the graph ticks and x / y axis
-            # plt.xticks([]), plt.yticks([])
-            # plt.show()
-            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-            # # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-
-            # centers = outputs["instances"].get_fields()[
-            #     "pred_boxes"].get_centers()
-            # print("obstacles' middle point", centers)
+            centers = outputs["instances"].get_fields()[
+                "pred_boxes"].get_centers()
+            print("obstacles' middle point", centers)
 
             # get mouse's current location
             current_mouse_position = pyautogui.position()
+
+            # get where to click
             obstacle_to_click = choose_obstacle.choose_obstacle(
                 outputs["instances"].get_fields())
             where_to_click = choose_obstacle.get_click_location(
@@ -163,9 +141,12 @@ if __name__ == "__main__":
             flat = [item for sublist in paths for item in sublist]
             try:
                 path = random.choice(flat)
+                # create a copy
+                path = Path.Path(path.data, path.times)
             except IndexError:
                 print("continuing due to no path found")
                 continue
+
             # scale and rotate to new location
             path.rel_path[0] = current_mouse_position
             new_path, new_time = path.create_path_to(where_to_click)
@@ -185,8 +166,32 @@ if __name__ == "__main__":
                 diff = actual_running_time - expected_running_time
                 if diff < 0:
                     time.sleep(delta_t)
-            # add a click
             # pyautogui.click()
+            # testing
+            try:
+                pyautogui.press("right")
+            except:
+                # FOR TESTING  # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+                # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+                v = MyVisualizer(
+                    image,
+                    metadata=detectron2.data.catalog.Metadata(name='balloon_train', thing_classes=[
+                        'staging', 'obstacle'], thing_colors=[(100, 100, 100), (100, 200, 100)]),
+                    scale=0.5,
+                    # remove the colors of unsegmented pixels. This option is only available for segmentation models
+                    instance_mode=ColorMode.SEGMENTATION
+                )
+                # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+                out = v.draw_instance_predictions(
+                    outputs["instances"].to("cpu"))
+                plt.figure(figsize=(15, 15))
+                plt.imshow(out.get_image())
+                # Hides the graph ticks and x / y axistime.sleep(0.33)
+                plt.xticks([]), plt.yticks([])
+                plt.show()
+                # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+                # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
+                print("testing here")
             time.sleep(0.33)
 
             print("time taken for 1 loop:", time.time() - start_time)

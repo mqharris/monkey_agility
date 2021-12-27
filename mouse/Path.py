@@ -81,7 +81,6 @@ class Path:
         self.scale_path(scale_factor)
         # scale times
         rel_times = self.get_rel_times()
-        rel_tail = rel_times[-100:]
         scaled_times = [x * scale_factor for x in rel_times]
 
         # return absolute path for moving the mouse and scaled times
