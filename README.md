@@ -12,7 +12,7 @@ This model detects the agility course's obstacle regions and outputs x-y coordin
 ![An example of image segmentation using the machine vision model](agility.gif)
 
 ## Monkey do:
-This component takes the output of the machine vision model and then interacts with the in game environment. This is achieved by moving the mouse pointer and clicking the agility obstacles. The goal is to interact with the environment as a human would. First a collection of human mouse movements was recorded. Then when needed a random line is selected and then scaled and rotated to be able to end on any arbitrary location on the screen, clicking the obstacle, and progressing the game.
+This component takes the output of the machine vision model and uses it to know how to interact with the in game environment. This is achieved by moving the mouse pointer and clicking the detected agility obstacles. The goal is to interact with the environment as a human would to avoid being flagged as a bot. This is done by using a collection of recorded human mouse movements combined with additional noise. When needed a mouse path is selected at random, then scaled and rotated. This allows the system to path the mouse to and click on obstacles at any location on the screen, progressing the game.
 
 
 ## Logic Flow:
