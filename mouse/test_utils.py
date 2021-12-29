@@ -1,5 +1,5 @@
-from utils import get_angle, rotate, scale
-from path_analysis import Path, get_absolute_path
+from mouse.utils import get_angle, rotate, scale
+from mouse.Path import Path, get_absolute_path
 import math
 
 

@@ -1,5 +1,5 @@
 import numpy as np
-import utils
+from mouse import utils
 
 
 class Path:
@@ -70,7 +70,7 @@ class Path:
 
         # get scale factor
         original_length = self.get_length(self.data)
-        new_length = self.get_length([self.data[0], desired_point])
+        new_length = self.get_length([self.rel_path[0], desired_point])
         scale_factor = new_length / original_length
 
         # rotate path
@@ -79,8 +79,8 @@ class Path:
         # scale path
         self.scale_path(scale_factor)
         # scale times
-        scaled_times = [
-            x * scale_factor for x in self.get_rel_times()]
+        rel_times = self.get_rel_times()
+        scaled_times = [x * scale_factor for x in rel_times]
 
         # return absolute path for moving the mouse and scaled times
         return get_absolute_path(self.rel_path), scaled_times
