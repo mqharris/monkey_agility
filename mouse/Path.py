@@ -72,7 +72,6 @@ class Path:
         original_length = self.get_length(self.data)
         new_length = self.get_length([self.rel_path[0], desired_point])
         scale_factor = new_length / original_length
-        print("scale factor", scale_factor)
 
         # rotate path
         self.rotate_path(rotation_angle)
