@@ -1,16 +1,12 @@
 from pynput.keyboard import Key, Listener
-from detectron2.utils.visualizer import Visualizer, ColorMode
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
 from detectron2 import model_zoo
 from detectron2.utils.logger import setup_logger
-import detectron2
 from mouse_path_loader import load_mouse_paths
 from movement_detector import is_there_movement
-from pickle import FALSE, load
 import time
 import cv2
-import matplotlib.pyplot as plt
 import torch
 import pyautogui
 from mss import mss
@@ -23,20 +19,6 @@ from pynput.mouse import Controller
 TORCH_VERSION = ".".join(torch.__version__.split(".")[:2])
 CUDA_VERSION = torch.__version__.split("+")[-1]
 print("torch version: ", torch.__version__)
-
-# to set colors for masking
-detectron2.utils.visualizer.ColorMode(1)
-# FOR TESTING
-# FOR TESTING
-
-# FOR TESTING
-
-
-class MyVisualizer(Visualizer):
-    def _jitter(self, color):
-        return (.2, .71, .25)
-# FOR TESTING
-
 
 # for pausing and resuming the main loop
 PAUSE_FLAG = False
@@ -62,10 +44,6 @@ if __name__ == "__main__":
     listener = keyboard.Listener(
         on_press=on_press)
     listener.start()
-
-    # 0 means pyautogui - slower but with better accuracy
-    # 1 means mss - faster with lower accuracy
-    screen_shot_method = 1
 
     # used for mss method and is_moving()
     sct = mss()
@@ -101,21 +79,12 @@ if __name__ == "__main__":
             is_moving = True
             while is_moving:
                 is_moving = is_there_movement(0.8, 0.25, sct)
-            print("agent has stopped")
 
             # detect obstacles in frame
-            if screen_shot_method == 1:
-                print("mss for screen shot method")
-                bounding_box = {'top': 0, 'left': 0,
-                                'width': 1920, 'height': 1080}
-                screen_data = np.array(sct.grab(bounding_box))
-                image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
-            elif screen_shot_method == 0:
-                print("pyautogui for screen shot method")
-                screen_data = pyautogui.screenshot(region=(0, 0, 1920, 1080))
-                image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
-                image = image[:, :, ::-1]
-
+            bounding_box = {'top': 0, 'left': 0,
+                            'width': 1920, 'height': 1080}
+            screen_data = np.array(sct.grab(bounding_box))
+            image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
             outputs = predictor(image)
             centers = outputs["instances"].get_fields()[
                 "pred_boxes"].get_centers()
@@ -156,42 +125,16 @@ if __name__ == "__main__":
             for i in range(len(new_path)):
                 pos = new_path[i]
                 delta_t = new_time[i]
-
                 mouse_controller.position = (pos[0], pos[1])
-
                 actual_running_time = time.time() - mouse_time
                 expected_running_time = sum(new_time[:i])
-
-                # Method Two
                 diff = actual_running_time - expected_running_time
                 if diff < 0:
                     time.sleep(delta_t)
+
             # pyautogui.click()
-            # testing
-            try:
-                pyautogui.press("right")
-            except:
-                # FOR TESTING  # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-                # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-                v = MyVisualizer(
-                    image,
-                    metadata=detectron2.data.catalog.Metadata(name='balloon_train', thing_classes=[
-                        'staging', 'obstacle'], thing_colors=[(100, 100, 100), (100, 200, 100)]),
-                    scale=0.5,
-                    # remove the colors of unsegmented pixels. This option is only available for segmentation models
-                    instance_mode=ColorMode.SEGMENTATION
-                )
-                # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-                out = v.draw_instance_predictions(
-                    outputs["instances"].to("cpu"))
-                plt.figure(figsize=(15, 15))
-                plt.imshow(out.get_image())
-                # Hides the graph ticks and x / y axistime.sleep(0.33)
-                plt.xticks([]), plt.yticks([])
-                plt.show()
-                # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-                # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING # FOR TESTING
-                print("testing here")
+            pyautogui.press("right")
+
             time.sleep(0.33)
 
             print("time taken for 1 loop:", time.time() - start_time)
