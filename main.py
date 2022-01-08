@@ -1,3 +1,7 @@
+from pynput.mouse import Controller
+from mouse import Path
+import random
+import choose_obstacle
 from pynput.keyboard import Key, Listener
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
@@ -12,10 +16,7 @@ import pyautogui
 from mss import mss
 import numpy as np
 from pynput import keyboard
-import choose_obstacle
-import random
-from mouse import Path
-from pynput.mouse import Controller
+
 TORCH_VERSION = ".".join(torch.__version__.split(".")[:2])
 CUDA_VERSION = torch.__version__.split("+")[-1]
 print("torch version: ", torch.__version__)
@@ -23,6 +24,12 @@ print("torch version: ", torch.__version__)
 # for pausing and resuming the main loop
 PAUSE_FLAG = False
 EXIT_FLAG = False
+
+# For adding noise to click location
+Y_STD = 8.404
+X_MEAN = -9.981
+X_STD = 7.742
+Y_MEAN = 6.573
 
 
 def on_press(key):
@@ -101,6 +108,17 @@ if __name__ == "__main__":
             print("current mouse location : {}, move mouse to : {}".format(
                 current_mouse_position, where_to_click))
 
+            print(where_to_click)
+            # add noise to click location
+            x_noise = np.random.normal(X_MEAN, X_STD, 1)[0]
+            y_noise = np.random.normal(Y_MEAN, Y_STD, 1)[0]
+            where_to_click[0] += x_noise
+            where_to_click[1] += y_noise
+            print(where_to_click)
+
+            # import pdb
+            # pdb.set_trace()
+
             # choose a mouse path
             distance = choose_obstacle.distance(
                 current_mouse_position, where_to_click)
@@ -132,9 +150,9 @@ if __name__ == "__main__":
                 if diff < 0:
                     time.sleep(delta_t)
 
-            # pyautogui.click()
+            pyautogui.click()
             pyautogui.press("right")
 
-            time.sleep(0.33)
+            time.sleep(0.75)
 
             print("time taken for 1 loop:", time.time() - start_time)
