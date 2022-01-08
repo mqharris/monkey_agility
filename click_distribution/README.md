@@ -8,6 +8,8 @@ Run `analyise_clicks.py` to calculate distribution parameters and display the fo
 
 ## Distribution of clicks
 ![](image.png)
+
+
 I have a bias of clicking high and to the left, so this will be included the interaction component
 
 ```
