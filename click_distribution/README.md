@@ -14,7 +14,7 @@ Run `analyise_clicks.py` to calculate distribution parameters and display the fo
 ![](click_dist.png)
 
 
-I have a bias of clicking high and to the left, so this will be included the interaction component
+I have a bias of clicking low and to the left, so this will be included the interaction component
 
 ```
 x mean: -9.981818181818182, x std: 8.404524558703558
