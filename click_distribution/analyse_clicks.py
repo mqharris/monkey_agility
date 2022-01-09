@@ -1,14 +1,18 @@
-import pdb
 import pickle
 import numpy as np
-from matplotlib import pyplot as plt
 import altair as alt
 import altair_viewer
 import pandas as pd
 
+
 file = open("recorded_clicks.obj", 'rb')
 clicks = pickle.load(file)
 file.close()
+
+# invert y axis because the origin is in the top left, not bottom left
+clicks = [[pt[0], 1080-pt[1]]
+          for pt in clicks if pt[0] > 700]  # remove one obvious outlier
+
 
 # set edges
 center = clicks[0]
