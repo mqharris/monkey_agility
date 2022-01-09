@@ -11,12 +11,12 @@ Run `click_heatmap.py` to create and save a heat map of my clicks for one agilit
 Run `analyise_clicks.py` to calculate distribution parameters and display the following chart
 
 ## Distribution of clicks
-![](image.png)
+![](click_dist.png)
 
 
 I have a bias of clicking high and to the left, so this will be included the interaction component
 
 ```
 x mean: -9.981818181818182, x std: 8.404524558703558
-y mean: 6.572727272727272, y std: 7.741809855241263
+y mean: -6.572727272727272, y std: 7.741809855241263
 ```
