@@ -26,10 +26,11 @@ PAUSE_FLAG = False
 EXIT_FLAG = False
 
 # For adding noise to click location
-Y_STD = 8.404
-X_MEAN = -9.981
-X_STD = 7.742
-Y_MEAN = 6.573
+Y_MEAN = -6.5727
+Y_STD = 7.7418
+
+X_MEAN = -9.9818
+X_STD = 8.4045
 
 
 def on_press(key):
@@ -71,6 +72,9 @@ if __name__ == "__main__":
 
     mouse_controller = Controller()
 
+    screen_shot_bounding_box = {'top': 0, 'left': 0,
+                                'width': 1920, 'height': 1080}
+
     print("starting monkey agility")
     num_iterations = 0
     while True:
@@ -88,14 +92,12 @@ if __name__ == "__main__":
                 is_moving = is_there_movement(0.8, 0.25, sct)
 
             # detect obstacles in frame
-            bounding_box = {'top': 0, 'left': 0,
-                            'width': 1920, 'height': 1080}
-            screen_data = np.array(sct.grab(bounding_box))
+            screen_data = np.array(sct.grab(screen_shot_bounding_box))
             image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
             outputs = predictor(image)
-            centers = outputs["instances"].get_fields()[
-                "pred_boxes"].get_centers()
-            print("obstacles' middle point", centers)
+            # centers = outputs["instances"].get_fields()[
+            #     "pred_boxes"].get_centers()
+            # print("obstacles' middle point", centers)
 
             # get mouse's current location
             current_mouse_position = pyautogui.position()
@@ -108,16 +110,29 @@ if __name__ == "__main__":
             print("current mouse location : {}, move mouse to : {}".format(
                 current_mouse_position, where_to_click))
 
-            print(where_to_click)
             # add noise to click location
             x_noise = np.random.normal(X_MEAN, X_STD, 1)[0]
             y_noise = np.random.normal(Y_MEAN, Y_STD, 1)[0]
-            where_to_click[0] += x_noise
-            where_to_click[1] += y_noise
-            print(where_to_click)
+            new_click = [int(round(where_to_click[0] + x_noise)),
+                         int(round(where_to_click[1] + y_noise))]
 
-            # import pdb
-            # pdb.set_trace()
+            import pdb
+            pdb.set_trace()
+
+            while not obstacle_to_click["pred_masks"][new_click[1]][new_click[0]]:
+                print("RE DOING")
+                x_noise = np.random.normal(X_MEAN, X_STD, 1)[0]
+                y_noise = np.random.normal(Y_MEAN, Y_STD, 1)[0]
+                new_click = [int(round(where_to_click[0] + x_noise)),
+                             int(round(where_to_click[1] + y_noise))]
+                print(new_click)
+                print(obstacle_to_click["pred_masks"]
+                      [new_click[1]][new_click[0]])
+            # where_to_click[0] += x_noise
+            # where_to_click[1] += y_noise
+            where_to_click = new_click
+            print("with noise : ", where_to_click, "in zone?",
+                  obstacle_to_click["pred_masks"][new_click[1]][new_click[0]], "current mouse location :", pyautogui.position())
 
             # choose a mouse path
             distance = choose_obstacle.distance(
@@ -150,9 +165,9 @@ if __name__ == "__main__":
                 if diff < 0:
                     time.sleep(delta_t)
 
-            pyautogui.click()
-            pyautogui.press("right")
+            # pyautogui.click()
+            # pyautogui.press("right")
 
             time.sleep(0.75)
 
-            print("time taken for 1 loop:", time.time() - start_time)
+            # print("time taken for 1 loop:", time.time() - start_time)
