@@ -1,3 +1,7 @@
+from pynput.mouse import Controller
+from mouse import Path
+import random
+import choose_obstacle
 from pynput.keyboard import Key, Listener
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
@@ -12,10 +16,7 @@ import pyautogui
 from mss import mss
 import numpy as np
 from pynput import keyboard
-import choose_obstacle
-import random
-from mouse import Path
-from pynput.mouse import Controller
+
 TORCH_VERSION = ".".join(torch.__version__.split(".")[:2])
 CUDA_VERSION = torch.__version__.split("+")[-1]
 print("torch version: ", torch.__version__)
@@ -23,6 +24,15 @@ print("torch version: ", torch.__version__)
 # for pausing and resuming the main loop
 PAUSE_FLAG = False
 EXIT_FLAG = False
+
+# For adding noise to click location
+Y_MEAN = -6.5727
+Y_STD = 7.7418
+
+X_MEAN = -9.9818
+X_STD = 8.4045
+
+BETWEEN_OBSTACLES_WAIT = 5
 
 
 def on_press(key):
@@ -64,6 +74,9 @@ if __name__ == "__main__":
 
     mouse_controller = Controller()
 
+    screen_shot_bounding_box = {'top': 0, 'left': 0,
+                                'width': 1920, 'height': 1080}
+
     print("starting monkey agility")
     num_iterations = 0
     while True:
@@ -78,17 +91,12 @@ if __name__ == "__main__":
             # wait until agent stops moving for next instruction
             is_moving = True
             while is_moving:
-                is_moving = is_there_movement(0.8, 0.25, sct)
+                is_moving = is_there_movement(0.8, 0.5, sct)
 
             # detect obstacles in frame
-            bounding_box = {'top': 0, 'left': 0,
-                            'width': 1920, 'height': 1080}
-            screen_data = np.array(sct.grab(bounding_box))
+            screen_data = np.array(sct.grab(screen_shot_bounding_box))
             image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
             outputs = predictor(image)
-            centers = outputs["instances"].get_fields()[
-                "pred_boxes"].get_centers()
-            print("obstacles' middle point", centers)
 
             # get mouse's current location
             current_mouse_position = pyautogui.position()
@@ -96,10 +104,39 @@ if __name__ == "__main__":
             # get where to click
             obstacle_to_click = choose_obstacle.choose_obstacle(
                 outputs["instances"].get_fields())
-            where_to_click = choose_obstacle.get_click_location(
+            obstacle_center = choose_obstacle.get_obstacle_center(
                 obstacle_to_click)
-            print("current mouse location : {}, move mouse to : {}".format(
-                current_mouse_position, where_to_click))
+
+            # add buffer because of the error in the edges of the mask
+            volume = np.count_nonzero(obstacle_to_click["pred_masks"])
+            if volume < 2000:
+                scale_factor = 0.5
+            else:
+                scale_factor = 0.8
+
+            # add noise to click location
+            x_noise = np.random.normal(X_MEAN, X_STD, 1)[0]
+            y_noise = np.random.normal(Y_MEAN, Y_STD, 1)[0]
+            new_click = [int(round(obstacle_center[0] + x_noise)),
+                         int(round(obstacle_center[1] + y_noise))]
+
+            while not obstacle_to_click["pred_masks"][new_click[1]][new_click[0]]:
+                print("RE DOING")
+                x_noise = np.random.normal(X_MEAN, X_STD, 1)[0]
+                y_noise = np.random.normal(Y_MEAN, Y_STD, 1)[0]
+                new_click = [int(round(obstacle_center[0] + x_noise)),
+                             int(round(obstacle_center[1] + y_noise))]
+                print(new_click)
+                print(obstacle_to_click["pred_masks"]
+                      [new_click[1]][new_click[0]])
+            where_to_click = new_click
+
+            # add buffer because of the error in the edges of the mask
+            mask_buffer = Path.Path([obstacle_center, where_to_click])
+            mask_buffer.scale_path(scale_factor)
+            shrunk_click_location = Path.get_absolute_path(
+                mask_buffer.rel_path)
+            where_to_click = shrunk_click_location[-1]
 
             # choose a mouse path
             distance = choose_obstacle.distance(
@@ -132,9 +169,13 @@ if __name__ == "__main__":
                 if diff < 0:
                     time.sleep(delta_t)
 
-            # pyautogui.click()
-            pyautogui.press("right")
+            pyautogui.click()
+            # pyautogui.press("right")
 
-            time.sleep(0.33)
+            print("""current mouse location : {}, \
+move mouse to : {}, final mouse loc: {}, center: {}""".format(
+                current_mouse_position, where_to_click, pyautogui.position(), obstacle_center))
 
-            print("time taken for 1 loop:", time.time() - start_time)
+            time.sleep(BETWEEN_OBSTACLES_WAIT)
+
+            # print("time taken for 1 loop:", time.time() - start_time)
