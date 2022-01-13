@@ -32,7 +32,7 @@ Y_STD = 7.7418
 X_MEAN = -9.9818
 X_STD = 8.4045
 
-BETWEEN_OBSTACLES_WAIT = 3
+BETWEEN_OBSTACLES_WAIT = 5
 
 
 def on_press(key):
@@ -91,7 +91,7 @@ if __name__ == "__main__":
             # wait until agent stops moving for next instruction
             is_moving = True
             while is_moving:
-                is_moving = is_there_movement(0.8, 0.25, sct)
+                is_moving = is_there_movement(0.8, 0.5, sct)
 
             # detect obstacles in frame
             screen_data = np.array(sct.grab(screen_shot_bounding_box))
