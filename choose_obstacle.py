@@ -5,7 +5,7 @@ import numpy as np
 from collections import Counter
 
 
-def get_click_location(instance):
+def get_obstacle_center(instance):
     box = instance["pred_boxes"]
     return [(box[2] + box[0])//2, (box[3] + box[1])//2]
 

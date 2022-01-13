@@ -105,34 +105,46 @@ if __name__ == "__main__":
             # get where to click
             obstacle_to_click = choose_obstacle.choose_obstacle(
                 outputs["instances"].get_fields())
-            where_to_click = choose_obstacle.get_click_location(
+            obstacle_center = choose_obstacle.get_obstacle_center(
                 obstacle_to_click)
-            print("current mouse location : {}, move mouse to : {}".format(
-                current_mouse_position, where_to_click))
+
+            # add buffer because of the error in the edges of the mask
+            volume = np.count_nonzero(obstacle_to_click["pred_masks"])
+            if volume < 2000:
+                scale_factor = 0.3
+                y_mean = 0
+                x_mean = 0
+            else:
+                y_mean = Y_MEAN
+                x_mean = X_MEAN
+                scale_factor = 0.8
 
             # add noise to click location
-            x_noise = np.random.normal(X_MEAN, X_STD, 1)[0]
-            y_noise = np.random.normal(Y_MEAN, Y_STD, 1)[0]
-            new_click = [int(round(where_to_click[0] + x_noise)),
-                         int(round(where_to_click[1] + y_noise))]
+            x_noise = np.random.normal(x_mean, X_STD, 1)[0]
+            y_noise = np.random.normal(y_mean, Y_STD, 1)[0]
+            where_to_click = [int(round(obstacle_center[0] + x_noise)),
+                              int(round(obstacle_center[1] + y_noise))]
 
-            import pdb
-            pdb.set_trace()
+            mask_buffer = Path.Path([obstacle_center, where_to_click])
+            mask_buffer.scale_path(scale_factor)
+            shrunk_click_location = Path.get_absolute_path(
+                mask_buffer.rel_path)
+            where_to_click = shrunk_click_location[-1]
 
-            while not obstacle_to_click["pred_masks"][new_click[1]][new_click[0]]:
-                print("RE DOING")
-                x_noise = np.random.normal(X_MEAN, X_STD, 1)[0]
-                y_noise = np.random.normal(Y_MEAN, Y_STD, 1)[0]
-                new_click = [int(round(where_to_click[0] + x_noise)),
-                             int(round(where_to_click[1] + y_noise))]
-                print(new_click)
-                print(obstacle_to_click["pred_masks"]
-                      [new_click[1]][new_click[0]])
-            # where_to_click[0] += x_noise
-            # where_to_click[1] += y_noise
-            where_to_click = new_click
-            print("with noise : ", where_to_click, "in zone?",
-                  obstacle_to_click["pred_masks"][new_click[1]][new_click[0]], "current mouse location :", pyautogui.position())
+            # while not obstacle_to_click["pred_masks"][new_click[1]][new_click[0]]:
+            #     print("RE DOING")
+            #     x_noise = np.random.normal(X_MEAN, X_STD, 1)[0]
+            #     y_noise = np.random.normal(Y_MEAN, Y_STD, 1)[0]
+            #     new_click = [int(round(where_to_click[0] + x_noise)),
+            #                  int(round(where_to_click[1] + y_noise))]
+            #     print(new_click)
+            #     print(obstacle_to_click["pred_masks"]
+            #           [new_click[1]][new_click[0]])
+            # # where_to_click[0] += x_noise
+            # # where_to_click[1] += y_noise
+            # where_to_click = new_click
+            # print("with noise : ", where_to_click, "in zone?",
+            #       obstacle_to_click["pred_masks"][new_click[1]][new_click[0]], "current mouse location :", pyautogui.position())
 
             # choose a mouse path
             distance = choose_obstacle.distance(
@@ -165,8 +177,13 @@ if __name__ == "__main__":
                 if diff < 0:
                     time.sleep(delta_t)
 
-            # pyautogui.click()
-            # pyautogui.press("right")
+            pyautogui.click()
+            pyautogui.press("right")
+
+            if scale_factor == 0.3:
+                print("""current mouse location : {}, \
+move mouse to : {}, final mouse loc: {}, center: {}, obstacle volume: {}, scale factor: {}""".format(
+                    current_mouse_position, where_to_click, pyautogui.position(), obstacle_center, volume, scale_factor))
 
             time.sleep(0.75)
 
