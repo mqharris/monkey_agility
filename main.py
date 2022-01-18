@@ -32,13 +32,22 @@ Y_STD = 7.7418
 X_MEAN = -9.9818
 X_STD = 8.4045
 
+TIME_MEAN = 0.2
+TIME_STD = 0.1
+
 BETWEEN_OBSTACLES_WAIT = 5
+
+# determiens state
+SEERS_TIMES = [7.5, 6.3, 9.1, 4.5, 5.35, 3.4, 9]
+SEERS_NEXT_POS = [[156, 427], [414, 801], [996, 870],
+                  [997, 532], [854, 456], [1108, 683], [844, 516]]
 
 
 def on_press(key):
     global PAUSE_FLAG
     global EXIT_FLAG
     if key == keyboard.Key.ctrl:
+        print("PAUSING")
         PAUSE_FLAG = not PAUSE_FLAG
     if key == keyboard.Key.esc:
         EXIT_FLAG = True
@@ -79,8 +88,12 @@ if __name__ == "__main__":
 
     print("starting monkey agility")
     num_iterations = 0
+    state_index = 0
     while True:
-        if not PAUSE_FLAG:
+        if PAUSE_FLAG:
+            print("PAUSING ", PAUSE_FLAG)
+
+        else:
 
             if EXIT_FLAG:
                 print("exiting program")
@@ -91,12 +104,17 @@ if __name__ == "__main__":
             # wait until agent stops moving for next instruction
             is_moving = True
             while is_moving:
-                is_moving = is_there_movement(0.8, 0.5, sct)
+                is_moving = is_there_movement(0.8, 0.1, sct)
 
             # detect obstacles in frame
             screen_data = np.array(sct.grab(screen_shot_bounding_box))
             image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
             outputs = predictor(image)
+
+            # manage state
+            seen_obstacles = outputs["instances"].get_fields()["pred_classes"]
+            if (0 in seen_obstacles) and (1 in seen_obstacles):
+                state_index = 0
 
             # get mouse's current location
             current_mouse_position = pyautogui.position()
@@ -172,10 +190,31 @@ if __name__ == "__main__":
             pyautogui.click()
             # pyautogui.press("right")
 
+            # wait between clicking and next input
+            wait_timer = time.time()
+
             print("""current mouse location : {}, \
 move mouse to : {}, final mouse loc: {}, center: {}""".format(
                 current_mouse_position, where_to_click, pyautogui.position(), obstacle_center))
 
-            time.sleep(BETWEEN_OBSTACLES_WAIT)
+            # move the mouse part of the way to the next obstacle
+            next_obstacle_location = SEERS_NEXT_POS[state_index]
+            after_click = [next_obstacle_location[0] + np.random.normal(100, 50, 1)[0],
+                           next_obstacle_location[1] + np.random.normal(100, 50, 1)[0]]
+            print(next_obstacle_location, after_click)
+            random_distance = np.random.normal(0.5, 0.2, 1)[0]
+
+            # wait between obstacles
+            time_needed = SEERS_TIMES[state_index]
+            sleep_noise = np.random.normal(TIME_MEAN, TIME_STD, 1)[0]
+            time_to_sleep = time_needed - (time.time() - wait_timer)
+            time_with_noise = time_to_sleep + sleep_noise
+            print(time_to_sleep, sleep_noise, time_with_noise)
+            time.sleep(time_with_noise)
+
+            print("waiting for {}, state {}".format(
+                time_to_sleep, state_index))
+
+            state_index += 1
 
             # print("time taken for 1 loop:", time.time() - start_time)
