@@ -188,7 +188,7 @@ if __name__ == "__main__":
                     time.sleep(delta_t)
 
             pyautogui.click()
-            # pyautogui.press("right")
+            pyautogui.press("right")
 
             # wait between clicking and next input
             wait_timer = time.time()

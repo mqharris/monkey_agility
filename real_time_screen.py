@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     start_time = time.time()
 
-    bounding_box = {'top': 500, 'left': 900, 'width': 75, 'height': 100}
+    bounding_box = {'top': 500, 'left': 1000, 'width': 75, 'height': 100}
 
     sct = mss()
 
