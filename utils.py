@@ -21,13 +21,16 @@ def choose_random_path(where_to_click, mouse_paths):
         return None
 
 
-def scale_and_move(where_to_click, path, mouse_controller):
+def scale_and_move(where_to_click, path, mouse_controller, percent=None):
     path.rel_path[0] = pyautogui.position()
     new_path, new_time = path.create_path_to(where_to_click)
     mouse_time = time.time()
 
     # move mouse to new location
     for i in range(len(new_path)):
+        if percent:
+            if (i/len(new_path)) > percent:
+                return
         pos = new_path[i]
         delta_t = new_time[i]
         mouse_controller.position = (pos[0], pos[1])

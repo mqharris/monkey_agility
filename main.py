@@ -41,8 +41,10 @@ BETWEEN_OBSTACLES_WAIT = 5
 
 # determiens state
 SEERS_TIMES = [7.5, 6.3, 9.1, 4.5, 5.35, 3.4, 9]
-SEERS_NEXT_POS = [[156, 427], [414, 801], [996, 870],
-                  [997, 532], [854, 456], [1108, 683], [844, 516]]
+# SEERS_NEXT_POS = [[156, 427], [414, 801], [996, 870],
+#                   [997, 532], [854, 456], [1108, 683], [844, 516]]
+SEERS_NEXT_POS = [[996, 870], [997, 532],
+                  [854, 456], [1108, 683], [844, 516], [156, 427], [414, 801]]
 
 
 def on_press(key):
@@ -213,11 +215,20 @@ if __name__ == "__main__":
             wait_timer = time.time()
 
             # move the mouse part of the way to the next obstacle
-            next_obstacle_location = SEERS_NEXT_POS[state_index]
+            # or towards the middle of the screen
+            if random.uniform(0, 1) > 0.3:
+                print("towards next")
+                next_obstacle_location = SEERS_NEXT_POS[state_index]
+            else:
+                print("towards center")
+                next_obstacle_location = [825, 583]
             after_click = [next_obstacle_location[0] + np.random.normal(100, 50, 1)[0],
                            next_obstacle_location[1] + np.random.normal(100, 50, 1)[0]]
-            print(next_obstacle_location, after_click)
-            random_distance = np.random.normal(0.5, 0.2, 1)[0]
+            percent_to_complete = np.random.normal(0.5, 0.2, 1)[0]
+            print(pyautogui.position(), next_obstacle_location)
+            after_path = utils.choose_random_path(after_click, mouse_paths)
+            utils.scale_and_move(after_click, after_path,
+                                 mouse_controller, percent_to_complete)
 
             # wait between obstacles
             time_needed = SEERS_TIMES[state_index]
