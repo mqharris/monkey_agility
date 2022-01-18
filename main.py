@@ -16,6 +16,8 @@ import pyautogui
 from mss import mss
 import numpy as np
 from pynput import keyboard
+import utils
+import argparse
 
 TORCH_VERSION = ".".join(torch.__version__.split(".")[:2])
 CUDA_VERSION = torch.__version__.split("+")[-1]
@@ -60,6 +62,16 @@ setup_logger()
 
 if __name__ == "__main__":
 
+    # set up env type for testing or live running
+    parser = argparse.ArgumentParser(
+        description="required flag for environment type")
+    parser.add_argument('env_type', type=str,
+                        help='test or live, depending on environemtn')
+    args = parser.parse_args()
+    env_type = args.env_type
+    if env_type not in set(["test", "live"]):
+        raise Exception("Invalid environment flag")
+
     listener = keyboard.Listener(
         on_press=on_press)
     listener.start()
@@ -90,10 +102,7 @@ if __name__ == "__main__":
     num_iterations = 0
     state_index = 0
     while True:
-        if PAUSE_FLAG:
-            print("PAUSING ", PAUSE_FLAG)
-
-        else:
+        if not PAUSE_FLAG:
 
             if EXIT_FLAG:
                 print("exiting program")
@@ -156,46 +165,52 @@ if __name__ == "__main__":
                 mask_buffer.rel_path)
             where_to_click = shrunk_click_location[-1]
 
-            # choose a mouse path
-            distance = choose_obstacle.distance(
-                current_mouse_position, where_to_click)
-            low = int(0.8 * distance)
-            high = int(1.2 * distance)
-            paths = mouse_paths[low:high]
-            flat = [item for sublist in paths for item in sublist]
-            try:
-                path = random.choice(flat)
-                # create a copy
-                path = Path.Path(path.data, path.times)
-            except IndexError:
+            # # choose a mouse path
+            # distance = choose_obstacle.distance(
+            #     current_mouse_position, where_to_click)
+            # low = int(0.8 * distance)
+            # high = int(1.2 * distance)
+            # paths = mouse_paths[low:high]
+            # flat = [item for sublist in paths for item in sublist]
+            # try:
+            #     path = random.choice(flat)
+            #     # create a copy
+            #     path = Path.Path(path.data, path.times)
+            # except IndexError:
+            #     print("continuing due to no path found")
+            #     continue
+
+            path = utils.choose_random_path(where_to_click, mouse_paths)
+            if not path:
                 print("continuing due to no path found")
                 continue
 
-            # scale and rotate to new location
-            path.rel_path[0] = current_mouse_position
-            new_path, new_time = path.create_path_to(where_to_click)
-            mouse_time = time.time()
+            # # scale and rotate to new location
+            # path.rel_path[0] = current_mouse_position
+            # new_path, new_time = path.create_path_to(where_to_click)
+            # mouse_time = time.time()
 
-            # move mouse to new location
-            for i in range(len(new_path)):
-                pos = new_path[i]
-                delta_t = new_time[i]
-                mouse_controller.position = (pos[0], pos[1])
-                actual_running_time = time.time() - mouse_time
-                expected_running_time = sum(new_time[:i])
-                diff = actual_running_time - expected_running_time
-                if diff < 0:
-                    time.sleep(delta_t)
+            # # move mouse to new location
+            # for i in range(len(new_path)):
+            #     pos = new_path[i]
+            #     delta_t = new_time[i]
+            #     mouse_controller.position = (pos[0], pos[1])
+            #     actual_running_time = time.time() - mouse_time
+            #     expected_running_time = sum(new_time[:i])
+            #     diff = actual_running_time - expected_running_time
+            #     if diff < 0:
+            #         time.sleep(delta_t)
 
+            utils.scale_and_move(where_to_click, path, mouse_controller)
+
+            # interact with the environment
             pyautogui.click()
-            pyautogui.press("right")
+            if args.env_type == "test":
+                print("pressing right arrow key while testing")
+                pyautogui.press("right")
 
             # wait between clicking and next input
             wait_timer = time.time()
-
-            print("""current mouse location : {}, \
-move mouse to : {}, final mouse loc: {}, center: {}""".format(
-                current_mouse_position, where_to_click, pyautogui.position(), obstacle_center))
 
             # move the mouse part of the way to the next obstacle
             next_obstacle_location = SEERS_NEXT_POS[state_index]
