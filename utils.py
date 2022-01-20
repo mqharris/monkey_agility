@@ -3,6 +3,12 @@ import choose_obstacle
 from mouse import Path
 import random
 import time
+from detectron2.utils.visualizer import Visualizer, ColorMode
+import numpy as np
+import cv2
+from mss import mss
+import detectron2
+import matplotlib.pyplot as plt
 
 
 def choose_random_path(where_to_click, mouse_paths):
@@ -39,3 +45,31 @@ def scale_and_move(where_to_click, path, mouse_controller, percent=None):
         diff = actual_running_time - expected_running_time
         if diff < 0:
             time.sleep(delta_t)
+
+
+class MyVisualizer(Visualizer):
+    def _jitter(self, color):
+        return (.2, .71, .25)
+
+
+def display_prediciton(predictor, outputs):
+    sct = mss()
+    ColorMode(1)
+    bounding_box = {'top': 0, 'left': 0, 'width': 1920, 'height': 1080}
+    screen_data = np.array(sct.grab(bounding_box))
+    image = cv2.cvtColor(np.array(screen_data), cv2.COLOR_RGB2BGR)
+    outputs = predictor(image)
+
+    v = MyVisualizer(image,
+                     metadata=detectron2.data.catalog.Metadata(name='balloon_train', thing_classes=[
+                         'staging', 'obstacle'], thing_colors=[(100, 100, 100), (100, 200, 100)]),
+                     scale=0.5,
+                     # remove the colors of unsegmented pixels. This option is only available for segmentation models
+                     instance_mode=ColorMode.SEGMENTATION
+                     )
+    out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+
+    plt.figure(figsize=(15, 15))
+    plt.imshow(out.get_image())
+    plt.xticks([]), plt.yticks([])  # Hides the graph ticks and x / y axis
+    plt.show()

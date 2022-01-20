@@ -49,6 +49,8 @@ def choose_obstacle(instance):
                      for x in instance["pred_boxes"].get_centers()]
         index = distances.index(min(distances))
     else:
-        raise Exception(instance_case)
+        # raise Exception(instance_case)
+        print(instance_case)
+        return None
     return {key: value[index]
             for key, value in instance_as_np.items()}

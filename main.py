@@ -28,7 +28,7 @@ PAUSE_FLAG = False
 EXIT_FLAG = False
 
 # For adding noise to click location
-Y_MEAN = -6.5727
+Y_MEAN = 6.5727
 Y_STD = 7.7418
 
 X_MEAN = -9.9818
@@ -39,10 +39,11 @@ TIME_STD = 0.1
 
 BETWEEN_OBSTACLES_WAIT = 5
 
-# determiens state
-SEERS_TIMES = [7.5, 6.3, 9.1, 4.5, 5.35, 3.4, 9]
-# SEERS_NEXT_POS = [[156, 427], [414, 801], [996, 870],
-#                   [997, 532], [854, 456], [1108, 683], [844, 516]]
+# determines state
+SEERS_TIMES = [8.3, 6.3, 9.1, 4.5, 5.35, 3.6, 9.75]
+# SEERS_TIMES = [8.3, 6.5, 9.1, 4.5, 5.35, 4.2, 9.75]
+# SEERS_TIMES = [x - 1 for x in SEERS_TIMES]
+
 SEERS_NEXT_POS = [[996, 870], [997, 532],
                   [854, 456], [1108, 683], [844, 516], [156, 427], [414, 801]]
 
@@ -74,6 +75,7 @@ if __name__ == "__main__":
     if env_type not in set(["test", "live"]):
         raise Exception("Invalid environment flag")
 
+    # listens for exit or pause keys
     listener = keyboard.Listener(
         on_press=on_press)
     listener.start()
@@ -95,13 +97,14 @@ if __name__ == "__main__":
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
     predictor = DefaultPredictor(cfg)
 
+    # for moving the mouse
     mouse_controller = Controller()
 
+    # for machine vision model
     screen_shot_bounding_box = {'top': 0, 'left': 0,
                                 'width': 1920, 'height': 1080}
 
     print("starting monkey agility")
-    num_iterations = 0
     state_index = 0
     while True:
         if not PAUSE_FLAG:
@@ -133,6 +136,18 @@ if __name__ == "__main__":
             # get where to click
             obstacle_to_click = choose_obstacle.choose_obstacle(
                 outputs["instances"].get_fields())
+            if not obstacle_to_click:
+                print("nothing seen, moving mouse towards the middle of the screen")
+                after_location = [825, 583]
+                after_click = [after_location[0] + np.random.normal(100, 50, 1)[0],
+                               after_location[1] + np.random.normal(100, 50, 1)[0]]
+                percent_to_complete = np.random.normal(0.5, 0.2, 1)[0]
+                print(pyautogui.position(), after_location)
+                after_path = utils.choose_random_path(after_click, mouse_paths)
+                if after_path:
+                    utils.scale_and_move(after_click, after_path,
+                                         mouse_controller, percent_to_complete)
+                continue  # will constantly fail if no after_path
             obstacle_center = choose_obstacle.get_obstacle_center(
                 obstacle_to_click)
 
@@ -141,23 +156,19 @@ if __name__ == "__main__":
             if volume < 2000:
                 scale_factor = 0.5
             else:
-                scale_factor = 0.8
+                scale_factor = 0.7
 
             # add noise to click location
             x_noise = np.random.normal(X_MEAN, X_STD, 1)[0]
             y_noise = np.random.normal(Y_MEAN, Y_STD, 1)[0]
             new_click = [int(round(obstacle_center[0] + x_noise)),
                          int(round(obstacle_center[1] + y_noise))]
-
             while not obstacle_to_click["pred_masks"][new_click[1]][new_click[0]]:
                 print("RE DOING")
                 x_noise = np.random.normal(X_MEAN, X_STD, 1)[0]
                 y_noise = np.random.normal(Y_MEAN, Y_STD, 1)[0]
                 new_click = [int(round(obstacle_center[0] + x_noise)),
                              int(round(obstacle_center[1] + y_noise))]
-                print(new_click)
-                print(obstacle_to_click["pred_masks"]
-                      [new_click[1]][new_click[0]])
             where_to_click = new_click
 
             # add buffer because of the error in the edges of the mask
@@ -167,42 +178,11 @@ if __name__ == "__main__":
                 mask_buffer.rel_path)
             where_to_click = shrunk_click_location[-1]
 
-            # # choose a mouse path
-            # distance = choose_obstacle.distance(
-            #     current_mouse_position, where_to_click)
-            # low = int(0.8 * distance)
-            # high = int(1.2 * distance)
-            # paths = mouse_paths[low:high]
-            # flat = [item for sublist in paths for item in sublist]
-            # try:
-            #     path = random.choice(flat)
-            #     # create a copy
-            #     path = Path.Path(path.data, path.times)
-            # except IndexError:
-            #     print("continuing due to no path found")
-            #     continue
-
+            # get path from current mouse position to obstacle
             path = utils.choose_random_path(where_to_click, mouse_paths)
             if not path:
                 print("continuing due to no path found")
                 continue
-
-            # # scale and rotate to new location
-            # path.rel_path[0] = current_mouse_position
-            # new_path, new_time = path.create_path_to(where_to_click)
-            # mouse_time = time.time()
-
-            # # move mouse to new location
-            # for i in range(len(new_path)):
-            #     pos = new_path[i]
-            #     delta_t = new_time[i]
-            #     mouse_controller.position = (pos[0], pos[1])
-            #     actual_running_time = time.time() - mouse_time
-            #     expected_running_time = sum(new_time[:i])
-            #     diff = actual_running_time - expected_running_time
-            #     if diff < 0:
-            #         time.sleep(delta_t)
-
             utils.scale_and_move(where_to_click, path, mouse_controller)
 
             # interact with the environment
@@ -210,37 +190,48 @@ if __name__ == "__main__":
             if args.env_type == "test":
                 print("pressing right arrow key while testing")
                 pyautogui.press("right")
+            after_click_wait = abs(np.random.normal(0, 0.2, 1)[0]) + 0.2
+            time.sleep(after_click_wait)
 
             # wait between clicking and next input
             wait_timer = time.time()
 
-            # move the mouse part of the way to the next obstacle
-            # or towards the middle of the screen
-            if random.uniform(0, 1) > 0.3:
-                print("towards next")
-                next_obstacle_location = SEERS_NEXT_POS[state_index]
+            try:
+                after_location = SEERS_NEXT_POS[state_index]
+            except IndexError:
+                # utils.display_prediciton(predictor, outputs)
+                state_index = len(SEERS_TIMES) - 1  # fail safe
+
+            # move the mouse after the click
+            decider = random.uniform(0, 1)
+            print("decider", decider)
+            if decider < 0.95:
+                if decider > 0.3:
+                    print("towards next")
+                    after_location = SEERS_NEXT_POS[state_index]
+                else:
+                    print("towards center")
+                    after_location = [825, 583]
+                after_click = [after_location[0] + np.random.normal(100, 50, 1)[0],
+                               after_location[1] + np.random.normal(100, 50, 1)[0]]
+                percent_to_complete = np.random.normal(0.5, 0.2, 1)[0]
+                print(pyautogui.position(), after_location)
+                after_path = utils.choose_random_path(after_click, mouse_paths)
+                if after_path:
+                    utils.scale_and_move(after_click, after_path,
+                                         mouse_controller, percent_to_complete)
+                else:
+                    print("could not find after path, keeping mouse still")
             else:
-                print("towards center")
-                next_obstacle_location = [825, 583]
-            after_click = [next_obstacle_location[0] + np.random.normal(100, 50, 1)[0],
-                           next_obstacle_location[1] + np.random.normal(100, 50, 1)[0]]
-            percent_to_complete = np.random.normal(0.5, 0.2, 1)[0]
-            print(pyautogui.position(), next_obstacle_location)
-            after_path = utils.choose_random_path(after_click, mouse_paths)
-            utils.scale_and_move(after_click, after_path,
-                                 mouse_controller, percent_to_complete)
+                print("no movement according to the decider")
 
             # wait between obstacles
             time_needed = SEERS_TIMES[state_index]
-            sleep_noise = np.random.normal(TIME_MEAN, TIME_STD, 1)[0]
+            sleep_noise = abs(np.random.normal(TIME_MEAN, TIME_STD, 1)[0])
             time_to_sleep = time_needed - (time.time() - wait_timer)
+            print("time to sleep: ", time_to_sleep,
+                  "time needed: ", time_needed, "state: ", state_index)
             time_with_noise = time_to_sleep + sleep_noise
-            print(time_to_sleep, sleep_noise, time_with_noise)
             time.sleep(time_with_noise)
 
-            print("waiting for {}, state {}".format(
-                time_to_sleep, state_index))
-
             state_index += 1
-
-            # print("time taken for 1 loop:", time.time() - start_time)
