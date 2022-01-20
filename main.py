@@ -97,6 +97,8 @@ if __name__ == "__main__":
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
     predictor = DefaultPredictor(cfg)
 
+    not_seen_counter = 0
+
     # for moving the mouse
     mouse_controller = Controller()
 
@@ -137,7 +139,8 @@ if __name__ == "__main__":
             obstacle_to_click = choose_obstacle.choose_obstacle(
                 outputs["instances"].get_fields())
             if not obstacle_to_click:
-                print("nothing seen, moving mouse towards the middle of the screen")
+                print(
+                    "nothing seen, moving mouse towards the middle of the screen, counter: ", not_seen_counter)
                 after_location = [825, 583]
                 after_click = [after_location[0] + np.random.normal(100, 50, 1)[0],
                                after_location[1] + np.random.normal(100, 50, 1)[0]]
@@ -147,7 +150,10 @@ if __name__ == "__main__":
                 if after_path:
                     utils.scale_and_move(after_click, after_path,
                                          mouse_controller, percent_to_complete)
-                continue  # will constantly fail if no after_path
+                not_seen_counter += 1
+                if not_seen_counter > 10:
+                    raise Exception("Panic due to not seen counter > 10")
+                continue
             obstacle_center = choose_obstacle.get_obstacle_center(
                 obstacle_to_click)
 
@@ -235,3 +241,4 @@ if __name__ == "__main__":
             time.sleep(time_with_noise)
 
             state_index += 1
+            not_seen_counter = 0
