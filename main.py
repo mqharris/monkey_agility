@@ -203,6 +203,7 @@ if __name__ == "__main__":
             wait_timer = time.time()
 
             try:
+                
                 after_location = SEERS_NEXT_POS[state_index]
             except IndexError:
                 # utils.display_prediciton(predictor, outputs)
